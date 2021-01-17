@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/google/uuid"
 )
 
 const (
@@ -96,7 +98,7 @@ func (u *s3CompatibleUploader) uploadFile(ctx context.Context, path string, opti
 	}
 	defer file.Close()
 
-	key := time.Now().Format("2006_01_02_15_04_05") + ".jpg"
+	key := generateObjectKey()
 
 	var acl string
 	if options.ShortPublicUrls {
@@ -134,4 +136,14 @@ func (u *s3CompatibleUploader) signURL(key string, options *UploadOptions) (stri
 	}
 
 	return url, nil
+}
+
+func generateObjectKey() string {
+	timePrefix := time.Now().Format("2006_01_02") // help humans to differentiate between screenshots
+	uuid, err := uuid.NewRandom()                 // adding uuid to avoid enumeration
+	if err != nil {
+		log.Printf("Failed to generate uuid, got error %s\n", err)
+	}
+
+	return fmt.Sprintf("%s_%s.jpg", timePrefix, uuid)
 }
