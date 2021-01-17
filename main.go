@@ -122,10 +122,10 @@ func loadConfig() *config {
 	viper.AddConfigPath(".")
 	err := viper.ReadInConfig()
 	if err != nil {
-		// TODO ask for credentials
+		// TODO ask for credentials and generate config automatically
+		log.Fatalf("Cannot find the config file, got error %v", err)
 		panic(fmt.Errorf("Cannot find config file in ~/config/foxyshot/config.json, got error %v", err))
 	}
-
 	creds := &s3Credentials{
 		key:      viper.GetString("creds.key"),
 		secret:   viper.GetString("creds.secret"),
@@ -133,8 +133,13 @@ func loadConfig() *config {
 		region:   viper.GetString("creds.region"),
 	}
 
-	return &config{
+	config := &config{
 		watchFor: viper.GetString("watchFolder"),
 		creds:    creds,
 	}
+
+	log.Printf("Loaded config from %s \n", viper.ConfigFileUsed())
+	log.Printf("Watching folder %s. Screenshots will be uploaded to %s \n", config.watchFor, config.creds.endpoint)
+
+	return config
 }
