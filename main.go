@@ -118,13 +118,13 @@ type s3Credentials struct {
 
 func loadConfig() *config {
 	viper.SetConfigName("config")
-	viper.AddConfigPath("$HOME/config/foxyshot")
+	viper.AddConfigPath("$HOME/.config/foxyshot")
 	viper.AddConfigPath(".")
 	err := viper.ReadInConfig()
 	if err != nil {
 		// TODO ask for credentials and generate config automatically
 		log.Fatalf("Cannot find the config file, got error %v", err)
-		panic(fmt.Errorf("Cannot find config file in ~/config/foxyshot/config.json, got error %v", err))
+		panic(fmt.Errorf("Cannot find config file in ~/.config/foxyshot/config.json, got error %v", err))
 	}
 	creds := &s3Credentials{
 		key:      viper.GetString("creds.key"),
