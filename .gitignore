@@ -1,2 +1,4 @@
 config.json
 foxyshot
+coverage.out
+coverage.html

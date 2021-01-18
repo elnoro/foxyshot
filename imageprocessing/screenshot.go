@@ -75,6 +75,7 @@ func (opt *jpegOptimizer) Optimize(img image.Image) (string, error) {
 
 	err = jpeg.Encode(file, img, &jpeg.Options{Quality: opt.quality})
 	if err != nil {
+		os.Remove(file.Name())
 		return "", err
 	}
 
