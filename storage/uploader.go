@@ -2,7 +2,7 @@ package storage
 
 import (
 	"context"
-	"fmt"
+	"foxyshot/config"
 	"log"
 	"os"
 	"time"
@@ -44,11 +44,11 @@ type s3CompatibleUploader struct {
 	client *s3.S3
 }
 
-func newS3Client(key string, secret string, endpoint string, region string) *s3.S3 {
+func newS3Client(config *config.S3Config) *s3.S3 {
 	s3Config := &aws.Config{
-		Credentials: credentials.NewStaticCredentials(key, secret, ""),
-		Endpoint:    aws.String(endpoint),
-		Region:      aws.String(region),
+		Credentials: credentials.NewStaticCredentials(config.Key, config.Secret, ""),
+		Endpoint:    aws.String(config.Endpoint),
+		Region:      aws.String(config.Region),
 	}
 
 	newSession := session.New(s3Config)
@@ -58,9 +58,9 @@ func newS3Client(key string, secret string, endpoint string, region string) *s3.
 
 }
 
-// NewDigitalOceanUploader creates new Uploader instances compatible with Digital Ocean Spaces API
-func NewDigitalOceanUploader(key string, secret string, endpoint string, region string) Uploader {
-	c := newS3Client(key, secret, endpoint, region)
+// NewS3Uploader creates new Uploader instances compatible with S3 API ()
+func NewS3Uploader(config *config.S3Config) Uploader {
+	c := newS3Client(config)
 
 	return &s3CompatibleUploader{client: c}
 }
@@ -91,6 +91,7 @@ func (u *s3CompatibleUploader) generateURL(key string, options *UploadOptions) (
 	return u.signURL(key, options)
 }
 
+// TODO replace hardcoded content-type with config or detect automatically
 func (u *s3CompatibleUploader) uploadFile(ctx context.Context, path string, options *UploadOptions) (string, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -139,11 +140,10 @@ func (u *s3CompatibleUploader) signURL(key string, options *UploadOptions) (stri
 }
 
 func generateObjectKey() string {
-	timePrefix := time.Now().Format("2006_01_02") // help humans to differentiate between screenshots
-	uuid, err := uuid.NewRandom()                 // adding uuid to avoid enumeration
+	uuid, err := uuid.NewRandom() // adding uuid to avoid enumeration
 	if err != nil {
-		log.Printf("Failed to generate uuid, got error %s\n", err)
+		log.Fatalf("Failed to generate uuid, got error %s\n", err)
 	}
 
-	return fmt.Sprintf("%s_%s.jpg", timePrefix, uuid)
+	return uuid.String() + ".jpg"
 }
