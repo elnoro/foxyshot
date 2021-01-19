@@ -1,0 +1,10 @@
+{
+    "watchFolder": "expected_folder",
+    "creds": {
+		"key":      "expected_key",
+		"secret":   "expected_secret",
+		"endpoint": "expected_endpoint",
+		"region":   "expected_region"
+	},
+	"jpegQuality": 999
+}
