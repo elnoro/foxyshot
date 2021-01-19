@@ -54,5 +54,8 @@ func onNewScreenshot(ei notify.EventInfo, u storage.Uploader, p ip.ScreenshotPip
 	}
 
 	log.Printf("Url: %s \n", url)
-	clipboard.CopyToClipboard(url)
+	err = clipboard.CopyToClipboard(url)
+	if err != nil {
+		log.Printf("Could not copy the url to clipboard, got %v", err)
+	}
 }

@@ -91,10 +91,10 @@ type pngReader struct{}
 
 func (reader *pngReader) Read(path string) (image.Image, error) {
 	file, err := os.Open(path)
-	defer file.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer file.Close()
 
 	// TODO check if using image.Decode makes sense - which format do Monosnap, Joxi etc. use?
 	img, err := png.Decode(file)

@@ -51,7 +51,10 @@ func newS3Client(config *config.S3Config) *s3.S3 {
 		Region:      aws.String(config.Region),
 	}
 
-	newSession := session.New(s3Config)
+	newSession, err := session.NewSession(s3Config)
+	if err != nil {
+		log.Fatalf("Cannot connect to storage, got %v", err)
+	}
 	s3Client := s3.New(newSession)
 
 	return s3Client
