@@ -17,7 +17,7 @@ func TestDefaultSettings(t *testing.T) {
 
 func TestValidConfig(t *testing.T) {
 	v := viper.New()
-	v.SetConfigFile("./testdata/config.json")
+	v.SetConfigFile("./testdata/full.json")
 
 	c := parseConfigToStruct(v)
 
