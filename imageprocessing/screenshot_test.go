@@ -2,6 +2,7 @@ package imageprocessing
 
 import (
 	"fmt"
+	"foxyshot/config"
 	"image"
 	"os"
 	"testing"
@@ -15,6 +16,18 @@ var invalidPngData = []struct {
 }{
 	{"testdata/notanimage", "unexpected EOF"},
 	{"doesnotexist", "open doesnotexist: no such file or directory"},
+}
+
+func TestNewPipeline(t *testing.T) {
+	c := &config.Config{}
+
+	jpg := NewPipeline(c)
+	assert.IsType(t, &readerOptimizer{}, jpg)
+
+	c.RemoveOriginals = true
+
+	remove := NewPipeline(c)
+	assert.IsType(t, &RemoverPipeline{}, remove)
 }
 
 func TestPngReader_ReadInvalidData(t *testing.T) {

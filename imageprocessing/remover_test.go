@@ -1,8 +1,11 @@
 package imageprocessing
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
+	"log"
+	"os"
 	"sync"
 	"testing"
 
@@ -18,13 +21,20 @@ func TestOsRemover_Remove(t *testing.T) {
 	}
 	defer f.Close()
 
-	err = r.Remove(f.Name())
+	r.Remove(f.Name())
 
-	assert.NoError(t, err)
 	assert.False(t, assert.FileExists(new(testing.T), f.Name()), "Temp file not removed by remover")
+}
 
-	err = r.Remove("random_file")
-	assert.Error(t, err)
+func TestOsRemover_RemoveError(t *testing.T) {
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
+	defer func() { log.SetOutput(os.Stderr) }()
+
+	r := &osRemover{}
+	r.Remove("random_file")
+
+	assert.Contains(t, buf.String(), "Could not remove random_file")
 }
 
 // removerMock is used for making sure Remove was called even if it was called asynchoronously
@@ -33,11 +43,9 @@ type removerMock struct {
 	wg         sync.WaitGroup
 }
 
-func (r *removerMock) Remove(path string) error {
+func (r *removerMock) Remove(path string) {
 	defer r.wg.Done()
 	r.PathCalled = path
-
-	return nil
 }
 
 type pipelineMock struct {
@@ -54,11 +62,6 @@ func (r *pipelineMock) Run(path string) (string, error) {
 
 	return r.returnPath, nil
 }
-
-var examples = []struct {
-	p pipelineMock
-	r removerMock
-}{}
 
 func TestRemoverPipeline_Run(t *testing.T) {
 	mockRemover := &removerMock{}

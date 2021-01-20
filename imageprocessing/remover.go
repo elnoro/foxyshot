@@ -30,19 +30,15 @@ func (p *RemoverPipeline) Run(path string) (string, error) {
 }
 
 type remover interface {
-	Remove(path string) error
+	Remove(path string)
 }
 
 type osRemover struct {
 }
 
 // Remove files with os.Remove
-func (r *osRemover) Remove(path string) error {
+func (r *osRemover) Remove(path string) {
 	if err := os.Remove(path); err != nil {
 		log.Printf("Could not remove %s, got %v", path, err)
-
-		return err
 	}
-
-	return nil
 }

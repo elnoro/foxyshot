@@ -13,6 +13,7 @@ func TestDefaultSettings(t *testing.T) {
 	setupViper(v)
 
 	assert.Equal(t, defaultJpegQuality, v.GetInt("screenshots.jpegQuality"))
+	assert.Equal(t, false, v.GetBool("screenshots.removeOriginals"))
 }
 
 func TestValidConfig(t *testing.T) {
@@ -35,4 +36,8 @@ func TestExpandHomeFolder(t *testing.T) {
 	expanded := expandHomeFolder("~/watchfolder")
 
 	assert.Equal(t, home+"/watchfolder", expanded)
+
+	notChanged := expandHomeFolder("not/changed")
+
+	assert.Equal(t, "not/changed", notChanged)
 }
