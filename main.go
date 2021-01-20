@@ -17,7 +17,7 @@ func main() {
 	appConfig := config.Load()
 
 	uploader := storage.NewS3Uploader(appConfig.S3)
-	pipeline := ip.NewJpgPipeline(appConfig.JpegQuality)
+	pipeline := ip.NewPipeline(appConfig)
 
 	// Make the channel buffered to ensure no event is dropped. Notify will drop
 	// an event if the receiver is not able to keep up the sending pace.

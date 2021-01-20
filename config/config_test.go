@@ -12,7 +12,7 @@ func TestDefaultSettings(t *testing.T) {
 	v := viper.New()
 	setupViper(v)
 
-	assert.NotEqual(t, 0, v.GetInt("jpegQuality"))
+	assert.Equal(t, defaultJpegQuality, v.GetInt("screenshots.jpegQuality"))
 }
 
 func TestValidConfig(t *testing.T) {
@@ -22,6 +22,7 @@ func TestValidConfig(t *testing.T) {
 	c := parseConfigToStruct(v)
 
 	assert.Equal(t, 999, c.JpegQuality)
+	assert.Equal(t, true, c.RemoveOriginals)
 	assert.Equal(t, "expected_folder", c.WatchFor)
 	assert.Equal(t, "expected_key", c.S3.Key)
 	assert.Equal(t, "expected_secret", c.S3.Secret)

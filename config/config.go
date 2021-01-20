@@ -15,6 +15,8 @@ type Config struct {
 	S3       *S3Config
 	// Compression level for JPEGs
 	JpegQuality int
+	// Remove original screenshot files to save space
+	RemoveOriginals bool
 }
 
 // S3Config contains config for s3
@@ -26,8 +28,13 @@ type S3Config struct {
 	Region   string
 }
 
+const (
+	defaultJpegQuality = 30
+)
+
 func setupViper(v *viper.Viper) {
-	v.SetDefault("jpegQuality", 30)
+	v.SetDefault("screenshots.jpegQuality", defaultJpegQuality)
+	v.SetDefault("screenshots.removeOriginals", false)
 
 	v.SetConfigName("config")
 	v.AddConfigPath("$HOME/.config/foxyshot")
@@ -48,9 +55,10 @@ func parseConfigToStruct(v *viper.Viper) *Config {
 	}
 
 	config := &Config{
-		WatchFor:    v.GetString("watchFolder"),
-		S3:          creds,
-		JpegQuality: v.GetInt("jpegQuality"),
+		WatchFor:        v.GetString("watchFolder"),
+		S3:              creds,
+		JpegQuality:     v.GetInt("screenshots.jpegQuality"),
+		RemoveOriginals: v.GetBool("screenshots.removeOriginals"),
 	}
 
 	log.Printf("Loaded config from %s \n", viper.ConfigFileUsed())

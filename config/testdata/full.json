@@ -6,5 +6,8 @@
 		"endpoint": "expected_endpoint",
 		"region":   "expected_region"
 	},
-	"jpegQuality": 999
+	"screenshots": {
+		"jpegQuality": 999,
+		"removeOriginals": true 
+	}
 }

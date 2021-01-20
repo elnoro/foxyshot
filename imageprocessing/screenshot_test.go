@@ -71,7 +71,7 @@ func TestJpgOptimizer_OptimizeError(t *testing.T) {
 }
 
 func TestNewJpgPipeline(t *testing.T) {
-	p := NewJpgPipeline(-99)
+	p := newJpgPipeline(-99)
 
 	assert.IsType(t, &readerOptimizer{}, p)
 }

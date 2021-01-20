@@ -1,6 +1,7 @@
 package imageprocessing
 
 import (
+	"foxyshot/config"
 	"image"
 	"image/jpeg"
 	"image/png"
@@ -15,6 +16,16 @@ const (
 	// DefaultTmpFolder where optimized screenshot files will be stored
 	DefaultTmpFolder = "/tmp"
 )
+
+// NewPipeline uses config to construct the pipeline
+func NewPipeline(c *config.Config) ScreenshotPipeline {
+	p := newJpgPipeline(c.JpegQuality)
+	if c.RemoveOriginals {
+		return newRemoverPipeline(p)
+	}
+
+	return p
+}
 
 // ScreenshotPipeline is an interface to optimization pipeline for images
 // Currently only PNG - JPG pipeline is supported
@@ -37,9 +48,9 @@ func (pipeline *readerOptimizer) Run(path string) (string, error) {
 	return pipeline.optimizer.Optimize(img)
 }
 
-// NewJpgPipeline Creates ScreenshotPipeline that converts images into jpgs
+// newJpgPipeline Creates ScreenshotPipeline that converts images into jpgs
 // for MacOS quality 30 seems to be sufficient for screenshots and provides up to 90% savings in file size
-func NewJpgPipeline(quality int) ScreenshotPipeline {
+func newJpgPipeline(quality int) ScreenshotPipeline {
 	jpegOptimizer := &jpegOptimizer{
 		quality:   quality,
 		tmpFolder: DefaultTmpFolder,
