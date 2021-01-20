@@ -8,7 +8,7 @@ A lightweight tool to upload MacOS screenshots to an S3-compatible provider.
 
 ```
 $ git clone https://github.com/elnoro/foxyshot.git
-$ cd foxyshot && go install
+$ cd foxyshot && make install
 ```
 
 ## Configure
