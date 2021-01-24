@@ -8,23 +8,45 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
+	"net/http"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 )
 
 func main() {
-	grpcAddress := flag.String("a", ":3311", "port to accept client connection on")
-	f := flag.String("f", "/tmp/foxyshot-server", "folder to images in")
-	u := flag.String("u", "http://localhost/images", "url prefix for image links")
+	webAddress := flag.String("web-address", ":3322", "port for serving images")
+	apiAddress := flag.String("api-address", ":3311", "port for uploading images")
+	dir := flag.String("d", "/tmp/foxyshot-server", "folder to upload images to in")
+	url := flag.String("u", "http://localhost:3322", "url from which images will be server")
 
+	go startWebServer(*webAddress, *dir)
+	go startAPIServer(*apiAddress, *dir, *url)
+
+	// TODO add signal processing
+	select {}
+}
+
+// startWebServer starts web server to serve images to the users
+func startWebServer(address, path string) {
+	log.Println("Starting the web server:", address, path)
+
+	fs := http.FileServer(http.Dir(path))
+	http.Handle("/", fs)
+	log.Fatal(http.ListenAndServe(address, fs))
+
+}
+
+// startAPIServer starts GRPC server to upload images
+func startAPIServer(address, path, httpURL string) {
+	log.Println("Starting the api server:", address, path, httpURL)
 	screenshotServer := &DiskStorage{
-		path: *f,
-		url:  *u,
+		path: path,
+		url:  httpURL,
 	}
 
 	gs := grpc.NewServer()
-	tcpListener, err := net.Listen("tcp", *grpcAddress)
+	tcpListener, err := net.Listen("tcp", address)
 	if err != nil {
 		log.Fatal(err)
 	}

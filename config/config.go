@@ -47,8 +47,8 @@ func setupViper(v *viper.Viper) {
 	v.SetDefault("foxyshot.insecure", false)
 
 	v.SetConfigName("config")
-	v.AddConfigPath("$HOME/.config/foxyshot")
 	v.AddConfigPath(".")
+	v.AddConfigPath("$HOME/.config/foxyshot")
 }
 
 func parseConfigToStruct(v *viper.Viper) *Config {
