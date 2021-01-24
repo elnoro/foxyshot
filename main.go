@@ -16,7 +16,10 @@ func main() {
 
 	appConfig := config.Load()
 
-	uploader := storage.NewS3Uploader(appConfig.S3)
+	uploader, err := storage.NewUploader(appConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
 	pipeline := ip.NewPipeline(appConfig)
 
 	// Make the channel buffered to ensure no event is dropped. Notify will drop

@@ -9,14 +9,23 @@ import (
 )
 
 // Config Main config for the application
+// TODO can probably remove this and replace it with a viper instance
 type Config struct {
 	// Folder where screenshots are stored
 	WatchFor string
 	S3       *S3Config
+	Foxyshot *FoxyshotConfig
 	// Compression level for JPEGs
 	JpegQuality int
 	// Remove original screenshot files to save space
 	RemoveOriginals bool
+}
+
+// FoxyshotConfig containts config to connect to the foxyshot-server instance if you have one
+// It always has priority over S3 config
+type FoxyshotConfig struct {
+	Address  string
+	Insecure bool
 }
 
 // S3Config contains config for s3
@@ -35,6 +44,7 @@ const (
 func setupViper(v *viper.Viper) {
 	v.SetDefault("screenshots.jpegQuality", defaultJpegQuality)
 	v.SetDefault("screenshots.removeOriginals", false)
+	v.SetDefault("foxyshot.insecure", false)
 
 	v.SetConfigName("config")
 	v.AddConfigPath("$HOME/.config/foxyshot")
@@ -47,16 +57,23 @@ func parseConfigToStruct(v *viper.Viper) *Config {
 		// TODO ask for credentials and generate config automatically
 		log.Fatalf("Cannot find the config file, got error %v", err)
 	}
-	creds := &S3Config{
+
+	s3 := &S3Config{
 		Key:      v.GetString("creds.key"),
 		Secret:   v.GetString("creds.secret"),
 		Endpoint: v.GetString("creds.endpoint"),
 		Region:   v.GetString("creds.region"),
 	}
 
+	foxyshot := &FoxyshotConfig{
+		Address:  v.GetString("foxyshot.address"),
+		Insecure: v.GetBool("foxyshot.insecure"),
+	}
+
 	config := &Config{
 		WatchFor:        v.GetString("watchFolder"),
-		S3:              creds,
+		S3:              s3,
+		Foxyshot:        foxyshot,
 		JpegQuality:     v.GetInt("screenshots.jpegQuality"),
 		RemoveOriginals: v.GetBool("screenshots.removeOriginals"),
 	}

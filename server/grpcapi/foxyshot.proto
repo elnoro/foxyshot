@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package foxyshot;
+
+option go_package=".;grpcapi";
+
+message Screenshot {
+    bytes image = 1;
+    string extension = 2;
+}
+
+message ScreenshotLink {
+    string link = 1;
+}
+
+service Screenshots {
+    rpc upload(Screenshot) returns (ScreenshotLink);
+}
