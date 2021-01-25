@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/aws/aws-sdk-go v1.36.28
+	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/protobuf v1.4.3
 	github.com/google/uuid v1.1.5
 	github.com/rjeczalik/notify v0.9.2

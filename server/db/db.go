@@ -12,11 +12,11 @@ type Manipulator interface {
 }
 
 type Finder interface {
-	FindByDesc(desc string)
+	FindByDesc(desc string) ([]ImageRecord, error)
 }
 
 type Lister interface {
-	All() []ImageRecord
+	All() ([]ImageRecord, error)
 }
 
 type ImageRecord struct {
