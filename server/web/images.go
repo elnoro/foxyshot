@@ -5,8 +5,8 @@ import (
 	"net/http"
 )
 
-// StartWebServer starts web server to serve images to the users
-func StartWebServer(address, path string) {
+// Start starts web server to serve images to the users
+func Start(address, path string) {
 	log.Println("Starting the web server:", address, path)
 
 	fs := http.FileServer(http.Dir(path))

@@ -7,6 +7,9 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/protobuf v1.4.3
 	github.com/google/uuid v1.1.5
+	github.com/otiai10/gosseract v2.2.1+incompatible // indirect
+	github.com/otiai10/gosseract/v2 v2.3.1
+	github.com/otiai10/mint v1.3.2 // indirect
 	github.com/rjeczalik/notify v0.9.2
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.5.1

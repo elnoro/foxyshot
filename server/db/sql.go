@@ -2,7 +2,7 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -25,7 +25,7 @@ func NewSqlDb(dsn string) (*SqlDb, error) {
 
 	var version string
 	db.QueryRow("SELECT VERSION()").Scan(&version)
-	fmt.Println("Connected to:", version)
+	log.Println("Connected to:", version)
 
 	insertStmt, err := db.Prepare("INSERT INTO " + table + " (path, description) VALUES (?, ?)")
 	if err != nil {
@@ -108,5 +108,4 @@ func (d *SqlDb) findBySQL(sql string, args ...interface{}) (records []*ImageReco
 	err = rows.Err()
 
 	return records, err
-
 }
