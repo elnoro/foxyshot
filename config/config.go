@@ -26,6 +26,7 @@ type Config struct {
 type FoxyshotConfig struct {
 	Address  string
 	Insecure bool
+	Token    string
 }
 
 // S3Config contains config for s3
@@ -68,6 +69,7 @@ func parseConfigToStruct(v *viper.Viper) *Config {
 	foxyshot := &FoxyshotConfig{
 		Address:  v.GetString("foxyshot.address"),
 		Insecure: v.GetBool("foxyshot.insecure"),
+		Token:    v.GetString("foxyshot.token"),
 	}
 
 	config := &Config{

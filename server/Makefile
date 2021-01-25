@@ -1,2 +1,2 @@
 build:
-    go build -o foxyshot-server
+	go build -o foxyshot-server cmd/server.go 
