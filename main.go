@@ -8,44 +8,40 @@ import (
 	"foxyshot/storage"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/rjeczalik/notify"
 )
 
 func main() {
-
 	appConfig := config.Load()
 
 	uploader := storage.NewS3Uploader(appConfig.S3)
 	pipeline := ip.NewPipeline(appConfig)
 
-	// Make the channel buffered to ensure no event is dropped. Notify will drop
-	// an event if the receiver is not able to keep up the sending pace.
-	c := make(chan notify.EventInfo, 1)
+	app := &foxyshotApp{uploader: uploader, pipeline: pipeline}
+	ctx, cancel := context.WithCancel(context.Background())
+	go app.Watch(ctx, appConfig.WatchFor)
 
-	// Set up a watchpoint listening on events within current working directory.
-	// Dispatch each create and remove events separately to c.
-	if err := notify.Watch(appConfig.WatchFor, c, notify.Rename); err != nil {
-		log.Fatal(err)
-	}
-	defer notify.Stop(c)
-
-	for {
-		ei := <-c
-		onNewScreenshot(ei, uploader, pipeline)
-	}
+	app.WaitForExit(cancel)
 }
 
-func onNewScreenshot(ei notify.EventInfo, u storage.Uploader, p ip.ScreenshotPipeline) {
+type foxyshotApp struct {
+	uploader storage.Uploader
+	pipeline ip.ScreenshotPipeline
+}
+
+func (fa *foxyshotApp) onNewScreenshot(ctx context.Context, ei notify.EventInfo) {
 	log.Println("Got event:", ei)
 
-	processed, err := p.Run(ei.Path())
+	processed, err := fa.pipeline.Run(ei.Path())
 	if err != nil {
 		log.Printf("Skipping %s, reason: %v\n", ei.Path(), err)
 
 		return
 	}
-	url, err := u.Upload(context.Background(), processed, storage.DefaultOptions)
+	url, err := fa.uploader.Upload(ctx, processed, storage.DefaultOptions)
 	os.Remove(processed)
 	if err != nil {
 		log.Printf("Skipping %s, reason: %v\n", ei.Path(), err)
@@ -58,4 +54,28 @@ func onNewScreenshot(ei notify.EventInfo, u storage.Uploader, p ip.ScreenshotPip
 	if err != nil {
 		log.Printf("Could not copy the url to clipboard, got %v", err)
 	}
+}
+
+func (fa *foxyshotApp) Watch(ctx context.Context, dir string) {
+	eventsChannel := make(chan notify.EventInfo, 1)
+
+	// Set up a watchpoint listening on events within current working directory.
+	// Dispatch each create and remove events separately to c.
+	if err := notify.Watch(dir, eventsChannel, notify.Rename); err != nil {
+		log.Fatal(err)
+	}
+	defer notify.Stop(eventsChannel)
+
+	for event := range eventsChannel {
+		fa.onNewScreenshot(ctx, event)
+	}
+}
+
+func (fa *foxyshotApp) WaitForExit(cancel context.CancelFunc) {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	<-sigs
+	cancel()
+	log.Println("Exiting...")
 }
