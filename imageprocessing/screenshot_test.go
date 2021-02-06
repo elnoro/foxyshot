@@ -129,3 +129,30 @@ func TestReaderOptimizer_RunReaderError(t *testing.T) {
 }
 
 var mockImage = image.NewGray(image.Rect(0, 0, 1, 1))
+
+// TODO add benches with larger files to the repo
+var benches = []struct {
+	name      string
+	inputFile string
+	quality   int
+}{
+	{"jpg + smallest png", "testdata/valid.png", 30},
+	{"jpg + smallest png", "testdata/valid.png", 100},
+	{"jpg + smallest png", "testdata/valid.png", 255},
+}
+
+func BenchmarkScreenshot(b *testing.B) {
+	for _, set := range benches {
+		screenshotPipeline := newJpgPipeline(set.quality)
+		b.Run(fmt.Sprintf("%s - quality %d", set.name, set.quality), func(b *testing.B) {
+			p, err := screenshotPipeline.Run(set.inputFile)
+			if err != nil {
+				b.FailNow()
+			}
+			err = os.Remove(p)
+			if err != nil {
+				b.FailNow()
+			}
+		})
+	}
+}

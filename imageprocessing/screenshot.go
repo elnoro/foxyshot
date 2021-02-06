@@ -73,6 +73,7 @@ type jpegOptimizer struct {
 	tmpFolder string
 	prefix    string
 	quality   int
+	verbose   bool
 }
 
 func (opt *jpegOptimizer) Optimize(img image.Image) (string, error) {
@@ -82,7 +83,9 @@ func (opt *jpegOptimizer) Optimize(img image.Image) (string, error) {
 	}
 	defer file.Close()
 
-	log.Println("Saving compressed screenshot ", file.Name())
+	if opt.verbose {
+		log.Println("Saving compressed screenshot ", file.Name())
+	}
 
 	err = jpeg.Encode(file, img, &jpeg.Options{Quality: opt.quality})
 	if err != nil {
