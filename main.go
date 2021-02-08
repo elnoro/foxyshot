@@ -17,16 +17,12 @@ func main() {
 	switch subCmd {
 	case "run":
 		startApp()
-		break
 	case "start":
 		startDaemon(mainCmd)
-		break
 	case "stop":
 		stopDaemon()
-		break
 	case "status":
 		printStatus()
-		break
 	default:
 		log.Println("Unknown subcommand:", subCmd)
 	}
@@ -66,7 +62,10 @@ func startDaemon(mainCmd string) {
 	}
 
 	// TODO fail gracefully if the state file exist
-	ioutil.WriteFile(appStateFile, []byte(fmt.Sprintf("%d", cmd.Process.Pid)), 0644)
+	err = ioutil.WriteFile(appStateFile, []byte(fmt.Sprintf("%d", cmd.Process.Pid)), 0644)
+	if err != nil {
+		log.Println("Could save the status of foxyshot daemon. PID: ", cmd.Process.Pid)
+	}
 }
 
 func stopDaemon() {

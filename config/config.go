@@ -54,8 +54,9 @@ func parseConfigToStruct(v *viper.Viper) *Config {
 		Region:   v.GetString("creds.region"),
 	}
 
+	watchFolder := expandHomeFolder(v.GetString("watchFolder"))
 	config := &Config{
-		WatchFor:        v.GetString("watchFolder"),
+		WatchFor:        watchFolder,
 		S3:              creds,
 		JpegQuality:     v.GetInt("screenshots.jpegQuality"),
 		RemoveOriginals: v.GetBool("screenshots.removeOriginals"),

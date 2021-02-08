@@ -33,11 +33,9 @@ func TestValidConfig(t *testing.T) {
 
 func TestExpandHomeFolder(t *testing.T) {
 	home, _ := os.UserHomeDir()
-	expanded := expandHomeFolder("~/watchfolder")
+	v := viper.New()
+	v.SetConfigFile("./testdata/expand.json")
+	c := parseConfigToStruct(v)
 
-	assert.Equal(t, home+"/watchfolder", expanded)
-
-	notChanged := expandHomeFolder("not/changed")
-
-	assert.Equal(t, "not/changed", notChanged)
+	assert.Equal(t, home+"/watchfolder", c.WatchFor)
 }
