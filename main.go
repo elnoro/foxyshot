@@ -24,6 +24,9 @@ func main() {
 	case "stop":
 		stopDaemon()
 		break
+	case "status":
+		printStatus()
+		break
 	default:
 		log.Println("Unknown subcommand:", subCmd)
 	}
@@ -32,7 +35,7 @@ func main() {
 func parseArgs(args []string) (mainCmd string, subCmd string) {
 	mainCmd = os.Args[0]
 	if len(args) < 2 {
-		subCmd = "run"
+		subCmd = "status"
 	} else {
 		subCmd = os.Args[1]
 	}
@@ -85,4 +88,17 @@ func stopDaemon() {
 		log.Printf("Got error when stopping process: %v\n", err)
 	}
 	log.Println(out)
+}
+
+func printStatus() {
+	state, err := ioutil.ReadFile(appStateFile)
+	if err != nil {
+		log.Printf("Cannot find the state of the app. Got %v\n", err)
+
+		return
+	}
+
+	var pid int
+	fmt.Sscanf(string(state), "%d", &pid)
+	fmt.Println("Running. PID:", pid)
 }
