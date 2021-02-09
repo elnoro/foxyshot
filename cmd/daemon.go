@@ -9,8 +9,13 @@ import (
 	"strconv"
 )
 
-// TODO needs to be configurable, at least for testing
-const appStateFile = "/tmp/foxyshot.state"
+const defaultStateFile = "/tmp/foxyshot.state"
+
+var stateFile = defaultStateFile
+
+func getStateFile() string {
+	return stateFile
+}
 
 func startDaemon(mainCmd string) {
 	cmd := exec.Command(mainCmd, "run")
@@ -20,23 +25,25 @@ func startDaemon(mainCmd string) {
 	}
 
 	// TODO fail gracefully if the state file exist
-	err = ioutil.WriteFile(appStateFile, []byte(fmt.Sprintf("%d", cmd.Process.Pid)), 0644)
+	err = ioutil.WriteFile(getStateFile(), []byte(fmt.Sprintf("%d", cmd.Process.Pid)), 0644)
 	if err != nil {
-		log.Println("Could save the status of foxyshot daemon. PID: ", cmd.Process.Pid)
+		log.Println(
+			"Could save the status of foxyshot daemon. PID:",
+			cmd.Process.Pid,
+			"error:",
+			err,
+		)
 	}
 }
 
 func stopDaemon() {
-	state, err := ioutil.ReadFile(appStateFile)
+	pid, err := getPID()
 	if err != nil {
 		log.Printf("Cannot find the state of the app. Got %v\n", err)
 
 		return
 	}
-	os.Remove(appStateFile)
 
-	var pid int
-	fmt.Sscanf(string(state), "%d", &pid)
 	log.Println("Stopping process with pid", pid)
 
 	cmd := exec.Command("kill", strconv.Itoa(pid))
@@ -45,17 +52,25 @@ func stopDaemon() {
 		log.Printf("Got error when stopping process: %v\n", err)
 	}
 	log.Println(out)
+	os.Remove(getStateFile())
 }
 
 func printStatus() {
-	state, err := ioutil.ReadFile(appStateFile)
+	pid, err := getPID()
 	if err != nil {
 		log.Printf("Cannot find the state of the app. Got %v\n", err)
-
 		return
 	}
-
-	var pid int
-	fmt.Sscanf(string(state), "%d", &pid)
 	fmt.Println("Running. PID:", pid)
+}
+
+func getPID() (pid int, err error) {
+	state, err := ioutil.ReadFile(getStateFile())
+	if err == nil {
+		fmt.Sscanf(string(state), "%d", &pid)
+		if pid == 0 {
+			return 0, fmt.Errorf("unexpected pid value %d", pid)
+		}
+	}
+	return
 }
