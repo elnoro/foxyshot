@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"log"
+	"os"
 )
 
 // RunCmd parses the subcommand and chooses the behaviour
@@ -22,7 +23,10 @@ func RunCmd(args []string) {
 }
 
 func parseArgs(args []string) (mainCmd string, subCmd string) {
-	mainCmd = args[0]
+	mainCmd, err := os.Executable()
+	if err != nil {
+		log.Fatal("Cannot determine the path to the program, got", err)
+	}
 	if len(args) < 2 {
 		subCmd = "status"
 	} else {
