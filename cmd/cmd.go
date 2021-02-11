@@ -12,7 +12,7 @@ func RunCmd(args []string) {
 	case "run":
 		startApp()
 	case "start":
-		startDaemon(mainCmd)
+		wrapError(startDaemon(mainCmd))
 	case "stop":
 		stopDaemon()
 	case "status":
@@ -34,4 +34,10 @@ func parseArgs(args []string) (mainCmd string, subCmd string) {
 	}
 
 	return
+}
+
+func wrapError(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
 }

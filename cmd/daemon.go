@@ -17,23 +17,26 @@ func getStateFile() string {
 	return stateFile
 }
 
-func startDaemon(mainCmd string) {
+func startDaemon(mainCmd string) error {
+	p, err := getPID()
+	if err == nil {
+		return fmt.Errorf("Daemon is already running, PID: %d", p)
+	}
 	cmd := exec.Command(mainCmd, "run")
-	err := cmd.Start()
+	err = cmd.Start()
 	if err != nil {
-		log.Fatalf("cannot start daemon, got %v", err)
+		return fmt.Errorf("Cannot start daemon, got %v", err)
 	}
 
-	// TODO fail gracefully if the state file exist
 	err = ioutil.WriteFile(getStateFile(), []byte(fmt.Sprintf("%d", cmd.Process.Pid)), 0644)
 	if err != nil {
-		log.Println(
-			"Could save the status of foxyshot daemon. PID:",
+		return fmt.Errorf("Cannot save the status of foxyshot daemon. PID: %d, error: %v",
 			cmd.Process.Pid,
-			"error:",
 			err,
 		)
 	}
+
+	return nil
 }
 
 func stopDaemon() {

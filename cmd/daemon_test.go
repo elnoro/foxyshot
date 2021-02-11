@@ -1,6 +1,11 @@
 package cmd
 
 import (
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,7 +20,8 @@ func TestDaemonLifecycle(t *testing.T) {
 	assert.Error(t, err)
 	assert.False(t, assert.FileExists(new(testing.T), stateFile))
 
-	startDaemon("echo")
+	err = startDaemon("echo")
+	assert.NoError(t, err)
 	// running
 	p, err = getPID()
 	assert.NotEqual(t, 0, p)
@@ -29,6 +35,28 @@ func TestDaemonLifecycle(t *testing.T) {
 	assert.Error(t, err)
 	assert.False(t, assert.FileExists(new(testing.T), stateFile))
 }
+
+func TestCannotStartDaemonTwice(t *testing.T) {
+	dir, err := ioutil.TempDir("", "testdaemon")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	stateFile = path.Join(dir, "test.state")
+
+	err = startDaemon("echo")
+	assert.NoError(t, err)
+
+	err = startDaemon("echo")
+	assert.Error(t, err)
+	assert.True(
+		t,
+		strings.HasPrefix(err.Error(), "Daemon is already running"),
+		fmt.Sprintf("unexpected error message: %s", err.Error()),
+	)
+}
+
 func TestStartDaemon_InaccessibleLocation(t *testing.T) {
 	stateFile = "./testingdata/doesnotexists/cannot.state"
 	startDaemon("echo")
