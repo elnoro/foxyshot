@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"foxyshot/config"
 	"log"
 	"os"
 )
@@ -17,6 +18,8 @@ func RunCmd(args []string) {
 		stopDaemon()
 	case "status":
 		printStatus()
+	case "configure":
+		wrapError(config.RunConfigure())
 	default:
 		log.Println("Unknown subcommand:", subCmd)
 	}

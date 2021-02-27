@@ -14,7 +14,7 @@ $ cd foxyshot && make install
 ## Configure
 
 1. Change the default MacOS screenshot location to a designated folder, e. g. `~/Desktop/Screenshots`
-2. Create a config file and put it in ~/.config/foxyshot/config.json (see the format [here](https://github.com/elnoro/foxyshot/blob/master/config/testdata/full.json). For S3 credentials, refer to your S3 provider.
+2. Run `foxyshot configure` (it creates a config file in ~/.config/foxyshot/config.json; see the format [here](https://github.com/elnoro/foxyshot/blob/master/config/testdata/full.json)). For S3 credentials, refer to your S3 provider.
 3. Launch the program: 
 ```
 $ foxyshot start
