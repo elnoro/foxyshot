@@ -59,7 +59,8 @@ func TestCannotStartDaemonTwice(t *testing.T) {
 
 func TestStartDaemon_InaccessibleLocation(t *testing.T) {
 	stateFile = "./testingdata/doesnotexists/cannot.state"
-	startDaemon("echo")
+	err := startDaemon("echo")
+	assert.Error(t, err)
 
 	p, err := getPID()
 	assert.Equal(t, 0, p)
