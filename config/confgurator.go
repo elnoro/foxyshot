@@ -41,7 +41,7 @@ func configure(v *viper.Viper, p string) error {
 // RunConfigure saves config to home folder
 func RunConfigure() error {
 	configDir := expandHomeFolder("~/.config/foxyshot")
-	if err := os.MkdirAll(configDir, 755); err != nil {
+	if err := os.MkdirAll(configDir, 0755); err != nil {
 		return err
 	}
 
