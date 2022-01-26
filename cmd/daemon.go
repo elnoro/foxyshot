@@ -41,7 +41,7 @@ func startDaemon(mainCmd string) error {
 func stopDaemon() error {
 	pid, err := getPID()
 	if err != nil {
-		return fmt.Errorf("Cannot find the state of the app. Got %w\n", err)
+		return fmt.Errorf("Cannot find the state of the app. Got %w", err)
 	}
 
 	log.Println("Stopping process with pid", pid)
@@ -49,12 +49,12 @@ func stopDaemon() error {
 	cmd := exec.Command("kill", strconv.Itoa(pid))
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("Got error when stopping process: %w\n", err)
+		return fmt.Errorf("Got error when stopping process: %w", err)
 	}
 	log.Println(out)
 	err = os.Remove(getStateFile())
 	if err != nil {
-		return fmt.Errorf("Got error when stopping process: %v\n", err)
+		return fmt.Errorf("Got error when stopping process: %w", err)
 	}
 
 	return nil

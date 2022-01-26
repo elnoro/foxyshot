@@ -81,14 +81,14 @@ func TestStopDaemon_DoesNotRemoveMalformedState(t *testing.T) {
 	stateFile = "./testingdata/malformed.state"
 
 	err := stopDaemon()
-	assert.NoError(t, err)
+	assert.EqualError(t, err, "Cannot find the state of the app. Got unexpected pid value 0, reason expected integer")
 	assert.FileExists(t, stateFile)
 }
 
 func TestPrintStatus_DoesNotFail(t *testing.T) {
 	stateFile = "./testingdata/malformed.state"
 	err := printStatus()
-	assert.NoError(t, err)
+	assert.EqualError(t, err, "Printing status error, unexpected pid value 0, reason expected integer")
 	stateFile = "./testingdata/valid.state"
 	err = printStatus()
 	assert.NoError(t, err)
