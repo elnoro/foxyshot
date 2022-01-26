@@ -1,6 +1,7 @@
 package imageprocessing
 
 import (
+	"fmt"
 	"foxyshot/config"
 	"image"
 	"image/jpeg"
@@ -30,7 +31,7 @@ func NewPipeline(c *config.Config) ScreenshotPipeline {
 // ScreenshotPipeline is an interface to optimization pipeline for images
 // Currently only PNG - JPG pipeline is supported
 type ScreenshotPipeline interface {
-	// Accepts path to an existing image and returns path to an optimized image
+	// Run accepts path to an existing image and returns path to an optimized image
 	Run(path string) (string, error)
 }
 
@@ -79,9 +80,8 @@ type jpegOptimizer struct {
 func (opt *jpegOptimizer) Optimize(img image.Image) (string, error) {
 	file, err := ioutil.TempFile(opt.tmpFolder, opt.prefix)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("jpeg error, %w", err)
 	}
-	defer file.Close()
 
 	if opt.verbose {
 		log.Println("Saving compressed screenshot ", file.Name())
@@ -89,8 +89,10 @@ func (opt *jpegOptimizer) Optimize(img image.Image) (string, error) {
 
 	err = jpeg.Encode(file, img, &jpeg.Options{Quality: opt.quality})
 	if err != nil {
-		os.Remove(file.Name())
-		return "", err
+		return "", fmt.Errorf("jpeg optimization error, %w", err)
+	}
+	if err := file.Close(); err != nil {
+		return "", fmt.Errorf("jpeg error, %w", err)
 	}
 
 	return file.Name(), nil
@@ -103,17 +105,22 @@ type screenshotReader interface {
 
 type pngReader struct{}
 
-func (reader *pngReader) Read(path string) (image.Image, error) {
+func (reader *pngReader) Read(path string) (img image.Image, err error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("png error, %w", err)
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		cerr := file.Close()
+		if cerr != nil {
+			err = fmt.Errorf("png error, cannot close file - %w", cerr) // passing error to the top
+		}
+	}(file)
 
 	// TODO check if using image.Decode makes sense - which format do Monosnap, Joxi etc. use?
-	img, err := png.Decode(file)
+	img, err = png.Decode(file)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("png error, %w", err)
 	}
 
 	return img, nil

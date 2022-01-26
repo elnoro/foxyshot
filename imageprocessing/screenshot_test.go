@@ -14,8 +14,8 @@ var invalidPngData = []struct {
 	file   string
 	errMsg string
 }{
-	{"testdata/notanimage", "unexpected EOF"},
-	{"doesnotexist", "open doesnotexist: no such file or directory"},
+	{"testdata/notanimage", "png error, unexpected EOF"},
+	{"doesnotexist", "png error, open doesnotexist: no such file or directory"},
 }
 
 func TestNewPipeline(t *testing.T) {
@@ -53,7 +53,7 @@ func TestJpgOptimizer_OptimizeInaccessibleFolder(t *testing.T) {
 
 	f, err := testOptimizer.Optimize(mockImage)
 	if f != "" {
-		os.Remove(f)
+		_ = os.Remove(f)
 	}
 
 	assert.Equal(t, f, "")
@@ -65,7 +65,7 @@ func TestJpgOptimizer_Optimize(t *testing.T) {
 	testOptimizer := &jpegOptimizer{tmpFolder: "testdata", quality: 99}
 
 	f, err := testOptimizer.Optimize(mockImage)
-	defer os.Remove(f)
+	defer func(name string) { _ = os.Remove(name) }(f)
 
 	assert.FileExists(t, f)
 	assert.NoError(t, err)
@@ -80,7 +80,7 @@ func TestJpgOptimizer_OptimizeError(t *testing.T) {
 	f, err := testOptimizer.Optimize(largeImage)
 
 	assert.Empty(t, f)
-	assert.EqualError(t, err, "jpeg: image is too large to encode")
+	assert.EqualError(t, err, "jpeg optimization error, jpeg: image is too large to encode")
 }
 
 func TestNewJpgPipeline(t *testing.T) {

@@ -2,20 +2,21 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"foxyshot/app"
 	"foxyshot/config"
-	"log"
 )
 
-func startApp() {
+func startApp() error {
 	appConfig := config.Load()
-	app, err := app.New(appConfig)
+	cmdApp, err := app.New(appConfig)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("cannot start daemon, %w", err)
 	}
-
 	ctx, cancel := context.WithCancel(context.Background())
-	go app.Watch(ctx, appConfig.WatchFor)
 
-	app.WaitForExit(cancel)
+	go cmdApp.Watch(ctx, appConfig.WatchFor)
+
+	cmdApp.WaitForExit(cancel)
+	return nil
 }

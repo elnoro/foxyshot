@@ -2,9 +2,13 @@ package main
 
 import (
 	"foxyshot/cmd"
+	"log"
 	"os"
 )
 
 func main() {
-	cmd.RunCmd(os.Args)
+	err := cmd.RunCmd(os.Args)
+	if err != nil {
+		log.Printf("Cannot run command, got error: %v", err)
+	}
 }

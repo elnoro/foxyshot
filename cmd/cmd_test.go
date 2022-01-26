@@ -20,7 +20,8 @@ func TestParseArgs(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.expectedMain, func(t *testing.T) {
-			main, sub := parseArgs(c.args)
+			main, sub, err := parseArgs(c.args)
+			assert.NoError(t, err)
 			assert.NotEmpty(t, main)
 			assert.Equal(t, c.expectedSub, sub)
 		})

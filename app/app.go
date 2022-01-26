@@ -48,11 +48,15 @@ func (fa *foxyshotApp) onNewScreenshot(ctx context.Context, ei notify.EventInfo)
 		return
 	}
 	url, err := fa.uploader.Upload(ctx, processed, storage.DefaultOptions)
-	os.Remove(processed)
 	if err != nil {
 		log.Printf("Skipping %s, reason: %v\n", ei.Path(), err)
 
 		return
+	}
+
+	err = os.Remove(processed)
+	if err != nil {
+		log.Printf("Failed to remove %s, reason: %v\n", processed, err)
 	}
 
 	log.Printf("Url: %s \n", url)

@@ -1,46 +1,44 @@
 package cmd
 
 import (
+	"fmt"
 	"foxyshot/config"
-	"log"
 	"os"
 )
 
 // RunCmd parses the subcommand and chooses the behaviour
-func RunCmd(args []string) {
-	mainCmd, subCmd := parseArgs(args)
+func RunCmd(args []string) error {
+	mainCmd, subCmd, err := parseArgs(args)
+	if err != nil {
+		return err
+	}
 	switch subCmd {
 	case "run":
-		startApp()
+		return startApp()
 	case "start":
-		wrapError(startDaemon(mainCmd))
+		return startDaemon(mainCmd)
 	case "stop":
-		stopDaemon()
+		return stopDaemon()
 	case "status":
-		printStatus()
+		return printStatus()
 	case "configure":
-		wrapError(config.RunConfigure())
+		return config.RunConfigure()
 	default:
-		log.Println("Unknown subcommand:", subCmd)
+		return fmt.Errorf("Unknown subcommand")
 	}
 }
 
-func parseArgs(args []string) (mainCmd string, subCmd string) {
+func parseArgs(args []string) (string, string, error) {
 	mainCmd, err := os.Executable()
 	if err != nil {
-		log.Fatal("Cannot determine the path to the program, got", err)
+		return "", "", fmt.Errorf("Cannot determine the path to the program, got %w", err)
 	}
+	var subCmd string
 	if len(args) < 2 {
 		subCmd = "status"
 	} else {
 		subCmd = args[1]
 	}
 
-	return
-}
-
-func wrapError(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
+	return mainCmd, subCmd, nil
 }
