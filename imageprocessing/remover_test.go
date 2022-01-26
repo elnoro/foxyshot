@@ -3,7 +3,6 @@ package imageprocessing
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"sync"
@@ -15,15 +14,17 @@ import (
 func TestOsRemover_Remove(t *testing.T) {
 	r := &osRemover{}
 
-	f, err := ioutil.TempFile("testdata/", "tempfile")
+	f, err := os.CreateTemp("testdata/", "tempfile")
 	if err != nil {
 		assert.FailNow(t, "Cannot run this test - no file was created")
 	}
-	defer f.Close()
 
 	r.Remove(f.Name())
 
 	assert.False(t, assert.FileExists(new(testing.T), f.Name()), "Temp file not removed by remover")
+
+	err = f.Close()
+	assert.NoError(t, err)
 }
 
 func TestOsRemover_RemoveError(t *testing.T) {

@@ -6,7 +6,6 @@ import (
 	"image"
 	"image/jpeg"
 	"image/png"
-	"io/ioutil"
 	"log"
 	"os"
 )
@@ -78,7 +77,7 @@ type jpegOptimizer struct {
 }
 
 func (opt *jpegOptimizer) Optimize(img image.Image) (string, error) {
-	file, err := ioutil.TempFile(opt.tmpFolder, opt.prefix)
+	file, err := os.CreateTemp(opt.tmpFolder, opt.prefix)
 	if err != nil {
 		return "", fmt.Errorf("jpeg error, %w", err)
 	}

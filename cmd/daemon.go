@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -28,7 +27,7 @@ func startDaemon(mainCmd string) error {
 		return fmt.Errorf("Cannot start daemon, reason %w", err)
 	}
 
-	err = ioutil.WriteFile(getStateFile(), []byte(fmt.Sprintf("%d", cmd.Process.Pid)), 0644)
+	err = os.WriteFile(getStateFile(), []byte(fmt.Sprintf("%d", cmd.Process.Pid)), 0644)
 	if err != nil {
 		return fmt.Errorf("Cannot save the status of foxyshot daemon. PID: %d, error: %w",
 			cmd.Process.Pid,
@@ -72,7 +71,7 @@ func printStatus() error {
 }
 
 func getPID() (pid int, err error) {
-	state, err := ioutil.ReadFile(getStateFile())
+	state, err := os.ReadFile(getStateFile())
 	if err != nil {
 		return 0, fmt.Errorf("getting pid error, reason %w", err)
 	}

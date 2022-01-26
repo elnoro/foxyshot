@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -28,7 +27,8 @@ func TestDaemonLifecycle(t *testing.T) {
 	assert.NoError(t, err)
 	assert.FileExists(t, stateFile)
 
-	stopDaemon()
+	err = stopDaemon()
+	assert.NoError(t, err)
 	// no longer running
 	p, err = getPID()
 	assert.Equal(t, 0, p)
@@ -37,11 +37,13 @@ func TestDaemonLifecycle(t *testing.T) {
 }
 
 func TestCannotStartDaemonTwice(t *testing.T) {
-	dir, err := ioutil.TempDir("", "testdaemon")
+	dir, err := os.MkdirTemp("", "testdaemon")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(dir)
+	defer func(path string) {
+		_ = os.RemoveAll(path)
+	}(dir)
 
 	stateFile = path.Join(dir, "test.state")
 
@@ -78,13 +80,17 @@ func TestGetPid_MalformedStatus(t *testing.T) {
 func TestStopDaemon_DoesNotRemoveMalformedState(t *testing.T) {
 	stateFile = "./testingdata/malformed.state"
 
-	stopDaemon()
+	err := stopDaemon()
+	assert.NoError(t, err)
 	assert.FileExists(t, stateFile)
 }
 
 func TestPrintStatus_DoesNotFail(t *testing.T) {
 	stateFile = "./testingdata/malformed.state"
-	printStatus()
+	err := printStatus()
+	assert.NoError(t, err)
 	stateFile = "./testingdata/valid.state"
-	printStatus()
+	err = printStatus()
+	assert.NoError(t, err)
+
 }
