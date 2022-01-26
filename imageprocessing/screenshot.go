@@ -89,6 +89,11 @@ func (opt *jpegOptimizer) Optimize(img image.Image) (string, error) {
 
 	err = jpeg.Encode(file, img, &jpeg.Options{Quality: opt.quality})
 	if err != nil {
+		rerr := os.Remove(file.Name())
+		if rerr != nil {
+			return "", fmt.Errorf("invalid jpeg removal error %v, original reason %w", rerr, err)
+		}
+
 		return "", fmt.Errorf("jpeg optimization error, %w", err)
 	}
 	if err := file.Close(); err != nil {
