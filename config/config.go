@@ -22,10 +22,11 @@ type Config struct {
 // S3Config contains config for s3
 // Can be used for AWS S3, Digital Ocean spaces, Google Cloud storage etc.
 type S3Config struct {
-	Key      string
-	Secret   string
-	Endpoint string
-	Region   string
+	Key        string
+	Secret     string
+	Endpoint   string
+	Region     string
+	PublicURIs bool
 }
 
 const (
@@ -35,6 +36,7 @@ const (
 func setupViper(v *viper.Viper) {
 	v.SetDefault("screenshots.jpegQuality", defaultJpegQuality)
 	v.SetDefault("screenshots.removeOriginals", false)
+	v.SetDefault("creds.publicURIs", true)
 
 	v.SetConfigName("config")
 	v.AddConfigPath("$HOME/.config/foxyshot")
@@ -48,10 +50,11 @@ func parseConfigToStruct(v *viper.Viper) *Config {
 		log.Fatalf("Cannot find the config file, got error %v", err)
 	}
 	creds := &S3Config{
-		Key:      v.GetString("creds.key"),
-		Secret:   v.GetString("creds.secret"),
-		Endpoint: v.GetString("creds.endpoint"),
-		Region:   v.GetString("creds.region"),
+		Key:        v.GetString("creds.key"),
+		Secret:     v.GetString("creds.secret"),
+		Endpoint:   v.GetString("creds.endpoint"),
+		Region:     v.GetString("creds.region"),
+		PublicURIs: v.GetBool("creds.publicURIs"),
 	}
 
 	watchFolder := expandHomeFolder(v.GetString("watchFolder"))
