@@ -1,10 +1,13 @@
 {
     "watchFolder": "expected_folder",
-    "creds": {
+    "s3": {
 		"key":      "expected_key",
 		"secret":   "expected_secret",
 		"endpoint": "expected_endpoint",
-		"region":   "expected_region"
+		"region":   "expected_region",
+		"bucket": "expected_bucket",
+		"publicURIs": false,
+		"duration": 111
 	},
 	"screenshots": {
 		"jpegQuality": 999,

@@ -29,6 +29,9 @@ func TestValidConfig(t *testing.T) {
 	assert.Equal(t, "expected_secret", c.S3.Secret)
 	assert.Equal(t, "expected_endpoint", c.S3.Endpoint)
 	assert.Equal(t, "expected_region", c.S3.Region)
+	assert.Equal(t, "expected_bucket", c.S3.Bucket)
+	assert.Equal(t, false, c.S3.PublicURIs)
+	assert.Equal(t, 111, c.S3.Duration)
 }
 
 func TestExpandHomeFolder(t *testing.T) {

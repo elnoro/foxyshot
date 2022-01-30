@@ -14,27 +14,9 @@ import (
 	"github.com/google/uuid"
 )
 
-const (
-	defaultBucket   = "foxy"
-	defaultDuration = time.Hour
-)
-
-// UploadOptions specify details of uploading to files
-type UploadOptions struct {
-	Bucket string
-	// Sets an expiration date for presigned url (only used is PublicURIs is set to false in s3 config)
-	Accessible time.Duration
-}
-
-// DefaultOptions are the default upload options for Uploader
-var DefaultOptions = &UploadOptions{
-	Bucket:     defaultBucket,
-	Accessible: defaultDuration,
-}
-
 // Uploader Abstract interface for uploading screenshots, other packages should not care if its s3 or gs or whatever
 type Uploader interface {
-	Upload(ctx context.Context, path string, options *UploadOptions) (string, error)
+	Upload(ctx context.Context, path string) (string, error)
 }
 
 type s3CompatibleUploader struct {
@@ -68,14 +50,14 @@ func NewS3Uploader(config *config.S3Config) Uploader {
 }
 
 // Upload uploads file to s3 and returns presigned url
-func (u *s3CompatibleUploader) Upload(ctx context.Context, path string, options *UploadOptions) (string, error) {
-	key, err := u.uploadFile(ctx, path, options)
+func (u *s3CompatibleUploader) Upload(ctx context.Context, path string) (string, error) {
+	key, err := u.uploadFile(ctx, path)
 	if err != nil {
 		return "", err
 	}
 	log.Printf("Uploaded %s as %s \n", path, key)
 
-	url, err := u.generateURL(key, options)
+	url, err := u.generateURL(key)
 	if err != nil {
 		return "", err
 	}
@@ -83,18 +65,18 @@ func (u *s3CompatibleUploader) Upload(ctx context.Context, path string, options 
 	return url, nil
 }
 
-func (u *s3CompatibleUploader) generateURL(key string, options *UploadOptions) (string, error) {
+func (u *s3CompatibleUploader) generateURL(key string) (string, error) {
 	if u.config.PublicURIs {
-		url := u.client.Endpoint + "/" + options.Bucket + "/" + key
+		url := u.client.Endpoint + "/" + u.config.Bucket + "/" + key
 
 		return url, nil
 	}
 
-	return u.signURL(key, options)
+	return u.signURL(key)
 }
 
 // TODO replace hardcoded content-type with config or detect automatically
-func (u *s3CompatibleUploader) uploadFile(ctx context.Context, path string, options *UploadOptions) (string, error) {
+func (u *s3CompatibleUploader) uploadFile(ctx context.Context, path string) (string, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return "", err
@@ -111,7 +93,7 @@ func (u *s3CompatibleUploader) uploadFile(ctx context.Context, path string, opti
 	}
 
 	input := s3.PutObjectInput{
-		Bucket:      aws.String(options.Bucket),
+		Bucket:      aws.String(u.config.Bucket),
 		Key:         aws.String(key),
 		Body:        file,
 		ACL:         aws.String(acl),
@@ -127,13 +109,13 @@ func (u *s3CompatibleUploader) uploadFile(ctx context.Context, path string, opti
 	return key, nil
 }
 
-func (u *s3CompatibleUploader) signURL(key string, options *UploadOptions) (string, error) {
+func (u *s3CompatibleUploader) signURL(key string) (string, error) {
 	req, _ := u.client.GetObjectRequest(&s3.GetObjectInput{
-		Bucket: aws.String(options.Bucket),
+		Bucket: aws.String(u.config.Bucket),
 		Key:    aws.String(key),
 	})
 
-	url, err := req.Presign(options.Accessible)
+	url, err := req.Presign(time.Duration(u.config.Duration) * time.Hour)
 	if err != nil {
 		return "", err
 	}

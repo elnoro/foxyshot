@@ -1,11 +1,10 @@
 package config
 
 import (
+	"github.com/spf13/viper"
 	"log"
 	"os"
 	"strings"
-
-	"github.com/spf13/viper"
 )
 
 // Config Main config for the application
@@ -26,17 +25,24 @@ type S3Config struct {
 	Secret     string
 	Endpoint   string
 	Region     string
+	Bucket     string
 	PublicURIs bool
+	// Sets an expiration date for presigned url (only used is PublicURIs is set to false in s3 config)
+	Duration int
 }
 
 const (
 	defaultJpegQuality = 30
+	defaultBucket      = "foxy"
+	defaultDuration    = 24 * 60 * 60
 )
 
 func setupViper(v *viper.Viper) {
 	v.SetDefault("screenshots.jpegQuality", defaultJpegQuality)
 	v.SetDefault("screenshots.removeOriginals", false)
-	v.SetDefault("creds.publicURIs", true)
+	v.SetDefault("s3.publicURIs", true)
+	v.SetDefault("s3.bucket", defaultBucket)
+	v.SetDefault("s3.duration", defaultDuration)
 
 	v.SetConfigName("config")
 	v.AddConfigPath("$HOME/.config/foxyshot")
@@ -49,18 +55,20 @@ func parseConfigToStruct(v *viper.Viper) *Config {
 		// TODO ask for credentials and generate config automatically
 		log.Fatalf("Cannot find the config file, got error %v", err)
 	}
-	creds := &S3Config{
-		Key:        v.GetString("creds.key"),
-		Secret:     v.GetString("creds.secret"),
-		Endpoint:   v.GetString("creds.endpoint"),
-		Region:     v.GetString("creds.region"),
-		PublicURIs: v.GetBool("creds.publicURIs"),
+	s3config := &S3Config{
+		Key:        v.GetString("s3.key"),
+		Secret:     v.GetString("s3.secret"),
+		Endpoint:   v.GetString("s3.endpoint"),
+		Region:     v.GetString("s3.region"),
+		Bucket:     v.GetString("s3.bucket"),
+		PublicURIs: v.GetBool("s3.publicURIs"),
+		Duration:   v.GetInt("s3.duration"),
 	}
 
 	watchFolder := expandHomeFolder(v.GetString("watchFolder"))
 	config := &Config{
 		WatchFor:        watchFolder,
-		S3:              creds,
+		S3:              s3config,
 		JpegQuality:     v.GetInt("screenshots.jpegQuality"),
 		RemoveOriginals: v.GetBool("screenshots.removeOriginals"),
 	}

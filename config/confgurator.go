@@ -2,6 +2,7 @@ package config
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -18,6 +19,7 @@ var configFields = []struct {
 	{"creds.key", "S3 access key"},
 	{"creds.secret", "S3 secret"},
 	{"creds.region", "S3 region"},
+	{"creds.bucket", "S3 bucket"},
 }
 
 // configure asks the user to enter data needed for config
@@ -35,7 +37,20 @@ func configure(v *viper.Viper, p string) error {
 	}
 
 	fmt.Println("Done! Saving to", p)
-	return v.WriteConfigAs(p)
+
+	err := v.SafeWriteConfigAs(p)
+	if errors.Is(err, viper.ConfigFileAlreadyExistsError(p)) {
+		fmt.Println("Config file already exists. Do you really want to overwrite the existing config? [y/n]")
+		val, _ := reader.ReadString('\n')
+		if val == "y\n" || val == "yes\n" {
+			fmt.Printf("Done!")
+			return v.WriteConfigAs(p)
+		}
+
+		fmt.Println("No changes were applied!")
+		return nil
+	}
+	return v.SafeWriteConfigAs(p)
 }
 
 // RunConfigure saves config to home folder

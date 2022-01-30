@@ -47,7 +47,7 @@ func (fa *foxyshotApp) onNewScreenshot(ctx context.Context, ei notify.EventInfo)
 
 		return
 	}
-	url, err := fa.uploader.Upload(ctx, processed, storage.DefaultOptions)
+	url, err := fa.uploader.Upload(ctx, processed)
 	if err != nil {
 		log.Printf("Skipping %s, reason: %v\n", ei.Path(), err)
 
