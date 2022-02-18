@@ -50,7 +50,7 @@ func configure(v *viper.Viper, p string) error {
 		fmt.Println("No changes were applied!")
 		return nil
 	}
-	return v.SafeWriteConfigAs(p)
+	return err
 }
 
 // RunConfigure saves config to home folder

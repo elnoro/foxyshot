@@ -1,11 +1,12 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
-	"strconv"
+	"syscall"
 )
 
 const defaultStateFile = "/tmp/foxyshot.state"
@@ -43,18 +44,21 @@ func stopDaemon() error {
 	if err != nil {
 		return fmt.Errorf("Cannot find the state of the app. Got %w", err)
 	}
+	if pid == 0 {
+		return fmt.Errorf("Invalid pid, cannot be zero. Check the state file")
+	}
 
 	log.Println("Stopping process with pid", pid)
 
-	cmd := exec.Command("kill", strconv.Itoa(pid))
-	out, err := cmd.CombinedOutput()
-	if err != nil {
+	err = syscall.Kill(pid, syscall.SIGINT)
+	if errors.Is(err, syscall.ESRCH) {
+		log.Println("Process is not running. Removing state")
+	} else if err != nil {
 		return fmt.Errorf("Got error when stopping process: %w", err)
 	}
-	log.Println(out)
 	err = os.Remove(getStateFile())
 	if err != nil {
-		return fmt.Errorf("Got error when stopping process: %w", err)
+		return fmt.Errorf("Got error when removing state file: %w", err)
 	}
 
 	return nil
