@@ -28,7 +28,7 @@ func startDaemon(mainCmd string) error {
 		return fmt.Errorf("Cannot start daemon, reason %w", err)
 	}
 
-	err = os.WriteFile(getStateFile(), []byte(fmt.Sprintf("%d", cmd.Process.Pid)), 0644)
+	err = os.WriteFile(getStateFile(), []byte(fmt.Sprintf("%d", cmd.Process.Pid)), 0600)
 	if err != nil {
 		return fmt.Errorf("Cannot save the status of foxyshot daemon. PID: %d, error: %w",
 			cmd.Process.Pid,

@@ -32,7 +32,7 @@ func configure(v *viper.Viper, p string) error {
 	for _, cf := range configFields {
 		fmt.Printf("%s: ", cf.question)
 		val, _ := reader.ReadString('\n')
-		val = strings.Replace(val, "\n", "", -1)
+		val = strings.ReplaceAll(val, "\n", "")
 		v.Set(cf.key, val)
 	}
 

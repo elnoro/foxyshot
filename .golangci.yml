@@ -1,0 +1,8 @@
+linters:
+  enable:
+    - revive
+    - gocritic
+    - misspell
+    - prealloc
+    - unparam
+    - bodyclose

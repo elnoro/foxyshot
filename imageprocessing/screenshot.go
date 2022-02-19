@@ -64,7 +64,7 @@ func newJpgPipeline(quality int) ScreenshotPipeline {
 // screenshotOptimizer is an interface for optimizing screenshot images
 type screenshotOptimizer interface {
 	// Optimize returns path to a temporary file containing optimized image
-	//It is the caller's responsibility to remove the file when no longer needed.
+	// It is the caller's responsibility to remove the file when no longer needed.
 	Optimize(img image.Image) (string, error)
 }
 

@@ -124,10 +124,10 @@ func (u *s3CompatibleUploader) signURL(key string) (string, error) {
 }
 
 func generateObjectKey() string {
-	randomUuid, err := uuid.NewRandom() // adding uuid to avoid enumeration
+	randomUUID, err := uuid.NewRandom() // adding uuid to avoid enumeration
 	if err != nil {
 		log.Fatalf("Failed to generate uuid, got error %s\n", err)
 	}
 
-	return randomUuid.String() + ".jpg"
+	return randomUUID.String() + ".jpg"
 }
