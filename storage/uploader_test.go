@@ -8,6 +8,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"testing"
@@ -27,7 +28,12 @@ func Test_UploadHappyPath(t *testing.T) {
 	ctx := context.Background()
 	minioC, err := startMinio(ctx)
 	assert.NoError(t, err)
-	defer minioC.Terminate(ctx)
+	defer func(minioC testcontainers.Container, ctx context.Context) {
+		err := minioC.Terminate(ctx)
+		if err != nil {
+			log.Println("Container termination failed. Please clean up manually!")
+		}
+	}(minioC, ctx)
 
 	endpoint, err := minioC.Endpoint(ctx, "http")
 	assert.NoError(t, err)
