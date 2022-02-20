@@ -15,11 +15,11 @@ var configFields = []struct {
 	question string
 }{
 	{"watchFolder", "Folder to store screenshots"},
-	{"creds.endpoint", "URL of your S3-compatible server"},
-	{"creds.key", "S3 access key"},
-	{"creds.secret", "S3 secret"},
-	{"creds.region", "S3 region"},
-	{"creds.bucket", "S3 bucket"},
+	{"s3.endpoint", "URL of your S3-compatible server"},
+	{"s3.key", "S3 access key"},
+	{"s3.secret", "S3 secret"},
+	{"s3.region", "S3 region"},
+	{"s3.bucket", "S3 bucket"},
 }
 
 // configure asks the user to enter data needed for config
