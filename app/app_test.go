@@ -73,7 +73,6 @@ func TestFoxyshotApp_WatchCreatedFile(t *testing.T) {
 	assert.Eventuallyf(t, func() bool {
 		return strings.Contains(uploader.pathUploaded, filePath+"-processed")
 	}, 1*time.Second, 500*time.Millisecond, "uploader must have been called")
-
 }
 
 func initTestFoxyshotApp() *foxyshotApp {

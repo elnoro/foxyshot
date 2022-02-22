@@ -1,5 +1,8 @@
 build:
-	go build 
+	go build
+
+buildC:
+	docker build -o bin -f builder.Dockerfile .
 
 test:
 	go test ./... -timeout=30s -race
