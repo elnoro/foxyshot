@@ -77,7 +77,7 @@ func (fa *foxyshotApp) onNewScreenshot(ctx context.Context, ei fileEvent) {
 
 func (fa *foxyshotApp) Watch(ctx context.Context, dir string) error {
 	if !strings.HasSuffix(dir, "/") {
-		dir = dir + "/"
+		dir += "/"
 	}
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {

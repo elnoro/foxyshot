@@ -1,18 +1,12 @@
 package app
 
 import (
+	"context"
 	"errors"
-	"fmt"
 	"foxyshot/config"
 	"github.com/fsnotify/fsnotify"
-	"os"
-	"path"
-	"strings"
-	"testing"
-	"time"
-
-	"context"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestNewApp(t *testing.T) {
@@ -38,41 +32,6 @@ func TestFoxyshotApp_WatchCancelledContext(t *testing.T) {
 	err := testApp.Watch(ctx, ".")
 
 	assert.Nil(t, err)
-}
-
-func TestFoxyshotApp_WatchCreatedFile(t *testing.T) {
-	// flaky because it relies on sleep and assertEventually
-	// but cannot rewrite without rewriting the app struct
-	if testing.Short() {
-		t.Skip()
-	}
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	pipeline := &pipelineMock{}
-	uploader := &uploaderMock{}
-	testApp := &foxyshotApp{
-		uploader: uploader,
-		pipeline: pipeline,
-	}
-
-	dir, err := os.MkdirTemp("", "foxyshot_test")
-	assert.NoError(t, err)
-	defer os.RemoveAll(dir)
-
-	go testApp.Watch(ctx, dir)
-
-	time.Sleep(1 * time.Second)
-	filePath := path.Join(dir, "expected")
-	_, err = os.Create(filePath)
-	assert.NoError(t, err)
-
-	assert.Eventuallyf(t, func() bool {
-		return strings.Contains(pipeline.pathCalled, filePath)
-	}, 1*time.Second, 500*time.Millisecond, fmt.Sprintf("pipeline must have been called, got %s", pipeline.pathCalled))
-	assert.Eventuallyf(t, func() bool {
-		return strings.Contains(uploader.pathUploaded, filePath+"-processed")
-	}, 1*time.Second, 500*time.Millisecond, "uploader must have been called")
 }
 
 func initTestFoxyshotApp() *foxyshotApp {
