@@ -6,19 +6,20 @@ import (
 	"foxyshot/clipboard"
 	"foxyshot/config"
 	"foxyshot/storage"
+	"github.com/fsnotify/fsnotify"
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"strings"
 	"syscall"
 
 	ip "foxyshot/imageprocessing"
-
-	"github.com/rjeczalik/notify"
 )
 
 // App is an interface for the main app that waits for new images to appear and watches for os signals
 type App interface {
-	Watch(context.Context, string)
+	Watch(context.Context, string) error
 	WaitForExit(context.CancelFunc)
 }
 
@@ -38,7 +39,15 @@ type foxyshotApp struct {
 	pipeline ip.ScreenshotPipeline
 }
 
-func (fa *foxyshotApp) onNewScreenshot(ctx context.Context, ei notify.EventInfo) {
+type fileEvent struct {
+	path string
+}
+
+func (fe fileEvent) Path() string {
+	return fe.path
+}
+
+func (fa *foxyshotApp) onNewScreenshot(ctx context.Context, ei fileEvent) {
 	log.Println("Got event:", ei)
 
 	processed, err := fa.pipeline.Run(ei.Path())
@@ -66,25 +75,56 @@ func (fa *foxyshotApp) onNewScreenshot(ctx context.Context, ei notify.EventInfo)
 	}
 }
 
-func (fa *foxyshotApp) Watch(ctx context.Context, dir string) {
-	eventsChannel := make(chan notify.EventInfo, 1)
-
-	// Set up a watchpoint listening on events within current working directory.
-	// Dispatch each create and remove events separately to c.
-	if err := notify.Watch(dir, eventsChannel, notify.Rename); err != nil {
-		log.Fatal(err)
+func (fa *foxyshotApp) Watch(ctx context.Context, dir string) error {
+	if !strings.HasSuffix(dir, "/") {
+		dir = dir + "/"
 	}
-	defer notify.Stop(eventsChannel)
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		return fmt.Errorf("cannot create watcher, %w", err)
+	}
+	defer func(watcher *fsnotify.Watcher) {
+		err := watcher.Close()
+		if err != nil {
+			log.Println("got error when closing watcher, ", err)
+		}
+	}(watcher)
+	err = watcher.Add(dir)
+	if err != nil {
+		return fmt.Errorf("cannot add screenshots directory, %w", err)
+	}
 
 	for {
 		select {
-		case event := <-eventsChannel:
-			fa.onNewScreenshot(ctx, event)
+		case ev, ok := <-watcher.Events:
+			if !ok {
+				return nil
+			}
+			fa.handleEvent(ctx, ev)
+		case err, ok := <-watcher.Errors:
+			if !ok {
+				return nil
+			}
+			log.Println(err)
 		case <-ctx.Done():
-			log.Printf("Watch stopped, got %v\n", ctx.Err())
-			return
+			return nil
 		}
 	}
+}
+
+func (fa *foxyshotApp) handleEvent(ctx context.Context, event fsnotify.Event) {
+	if event.Op&fsnotify.Create != fsnotify.Create {
+		return
+	}
+
+	filename := filepath.Base(event.Name)
+	if filename[:1] == "." {
+		// this is a temporary file created by MacOS, ignore
+		return
+	}
+
+	fe := fileEvent{path: event.Name}
+	fa.onNewScreenshot(ctx, fe)
 }
 
 func (fa *foxyshotApp) WaitForExit(cancel context.CancelFunc) {

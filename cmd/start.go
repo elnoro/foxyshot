@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"foxyshot/app"
 	"foxyshot/config"
+	"log"
 )
 
 func startApp() error {
@@ -15,7 +16,12 @@ func startApp() error {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 
-	go cmdApp.Watch(ctx, appConfig.WatchFor)
+	go func() {
+		err := cmdApp.Watch(ctx, appConfig.WatchFor)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	cmdApp.WaitForExit(cancel)
 	return nil
