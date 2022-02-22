@@ -34,7 +34,7 @@ type S3Config struct {
 const (
 	defaultJpegQuality = 30
 	defaultBucket      = "foxy"
-	defaultDuration    = 24 * 60 * 60
+	defaultDuration    = 24
 )
 
 func setupViper(v *viper.Viper) {
