@@ -6,8 +6,19 @@ import (
 	"os/exec"
 )
 
-// CopyToClipboard uses pbcopy to copy values into the system clipboard (macos only)
-func CopyToClipboard(val string) error {
+func NewClipboard() Clipboard {
+	return &macosClipboard{}
+}
+
+type Clipboard interface {
+	Copy(val string) error
+}
+
+type macosClipboard struct {
+}
+
+// Copy uses pbcopy to copy values into the system clipboard (macos only)
+func (m macosClipboard) Copy(val string) error {
 	cmd := exec.Command("pbcopy")
 	stdin, err := cmd.StdinPipe()
 	if err != nil {

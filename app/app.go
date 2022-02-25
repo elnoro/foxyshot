@@ -3,9 +3,10 @@ package app
 import (
 	"context"
 	"fmt"
-	"foxyshot/clipboard"
 	"foxyshot/config"
 	"foxyshot/storage"
+	"foxyshot/system/clipboard"
+	"foxyshot/system/notification"
 	"github.com/fsnotify/fsnotify"
 	"log"
 	"os"
@@ -30,13 +31,17 @@ func New(c *config.Config) (App, error) {
 	}
 	uploader := storage.NewS3Uploader(c.S3)
 	pipeline := ip.NewPipeline(c)
+	clipImpl := clipboard.NewClipboard()
+	notifier := notification.NewNotifier()
 
-	return &foxyshotApp{uploader: uploader, pipeline: pipeline}, nil
+	return &foxyshotApp{uploader: uploader, pipeline: pipeline, notifier: notifier, clipboard: clipImpl}, nil
 }
 
 type foxyshotApp struct {
-	uploader storage.Uploader
-	pipeline ip.ScreenshotPipeline
+	uploader  storage.Uploader
+	pipeline  ip.ScreenshotPipeline
+	clipboard clipboard.Clipboard
+	notifier  notification.Notifier
 }
 
 type fileEvent struct {
@@ -69,9 +74,14 @@ func (fa *foxyshotApp) onNewScreenshot(ctx context.Context, ei fileEvent) {
 	}
 
 	log.Printf("Url: %s \n", url)
-	err = clipboard.CopyToClipboard(url)
+	err = fa.clipboard.Copy(url)
 	if err != nil {
 		log.Printf("Could not copy the url to clipboard, got %v", err)
+	}
+
+	err = fa.notifier.Show("FoxyShot", "Screenshot uploaded")
+	if err != nil {
+		log.Printf("Failed to display notification, got %v", err)
 	}
 }
 

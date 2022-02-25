@@ -87,7 +87,7 @@ func TestFoxyshotApp_handleEvent(t *testing.T) {
 				uploader: &uploaderMock{},
 				pipeline: p,
 			}
-			fa.handleEvent(context.TODO(), tt.ev)
+			fa.handleEvent(context.Background(), tt.ev)
 
 			handled := p.pathCalled != ""
 			assert.Equal(t, tt.wantHandled, handled)
