@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"errors"
 	"foxyshot/config"
 	"github.com/fsnotify/fsnotify"
 	"github.com/stretchr/testify/assert"
@@ -84,8 +83,10 @@ func TestFoxyshotApp_handleEvent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &pipelineMock{}
 			fa := &foxyshotApp{
-				uploader: &uploaderMock{},
-				pipeline: p,
+				uploader:  &uploaderMock{},
+				pipeline:  p,
+				clipboard: &systemMock{},
+				notifier:  &systemMock{},
 			}
 			fa.handleEvent(context.Background(), tt.ev)
 
@@ -93,6 +94,35 @@ func TestFoxyshotApp_handleEvent(t *testing.T) {
 			assert.Equal(t, tt.wantHandled, handled)
 		})
 	}
+}
+
+func TestFoxyshotApp_onNewScreenshot_HappyPass(t *testing.T) {
+	pipeline := &pipelineMock{}
+	uploader := &uploaderMock{}
+	system := &systemMock{}
+	fa := &foxyshotApp{uploader: uploader, pipeline: pipeline, clipboard: system, notifier: system}
+
+	fa.onNewScreenshot(context.Background(), fileEvent{path: "expected-path"})
+
+	assert.Equal(t, "expected-path", pipeline.pathCalled)
+	assert.Equal(t, "expected-path-processed", uploader.pathUploaded)
+	assert.Equal(t, "expected-path-processed-uploaded", system.copiedToClipboard)
+	assert.Equal(t, "Screenshot uploaded", system.notificationShown)
+}
+
+type systemMock struct {
+	copiedToClipboard string
+	notificationShown string
+}
+
+func (s *systemMock) Copy(val string) error {
+	s.copiedToClipboard = val
+	return nil
+}
+
+func (s *systemMock) Show(_, notification string) error {
+	s.notificationShown = notification
+	return nil
 }
 
 type pipelineMock struct {
@@ -112,5 +142,5 @@ type uploaderMock struct {
 func (u *uploaderMock) Upload(_ context.Context, path string) (string, error) {
 	u.pathUploaded = path
 
-	return "", errors.New("stop running")
+	return path + "-uploaded", nil
 }
