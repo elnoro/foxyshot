@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"foxyshot/config"
 	"os"
+	"runtime/debug"
 )
 
 // RunCmd parses the subcommand and chooses the behaviour
@@ -23,6 +24,8 @@ func RunCmd(args []string) error {
 		return printStatus()
 	case "configure":
 		return config.RunConfigure()
+	case "version":
+		return getVersion()
 	default:
 		return fmt.Errorf("Unknown subcommand")
 	}
@@ -41,4 +44,22 @@ func parseArgs(args []string) (string, string, error) {
 	}
 
 	return mainCmd, subCmd, nil
+}
+
+func getVersion() error {
+	b, ok := debug.ReadBuildInfo()
+	if !ok {
+		return fmt.Errorf("no version info provided with the binary")
+	}
+
+	for _, kv := range b.Settings {
+		if kv.Key == "vcs.revision" {
+			fmt.Println("Revision:", kv.Value)
+		}
+		if kv.Key == "vcs.time" {
+			fmt.Println("Built:", kv.Value)
+		}
+	}
+
+	return nil
 }

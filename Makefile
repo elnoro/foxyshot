@@ -12,7 +12,7 @@ install:
 	mv foxyshot /usr/local/bin
 
 lint:
-	docker run --rm -v `pwd`:/app -w /app golangci/golangci-lint:v1.44.2 golangci-lint run -v
+	docker run --rm -v `pwd`:/app -w /app golangci/golangci-lint:v1.45 golangci-lint run -v
 
 coverage:
 	go test ./... -coverprofile coverage.out
