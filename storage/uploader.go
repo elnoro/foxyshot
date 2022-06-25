@@ -66,6 +66,10 @@ func (u *s3CompatibleUploader) Upload(ctx context.Context, path string) (string,
 }
 
 func (u *s3CompatibleUploader) generateURL(key string) (string, error) {
+	if u.config.CDN != "" {
+		return u.config.CDN + "/" + key, nil
+	}
+
 	if u.config.PublicURIs {
 		url := u.client.Endpoint + "/" + u.config.Bucket + "/" + key
 
