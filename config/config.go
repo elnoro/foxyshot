@@ -29,6 +29,7 @@ type S3Config struct {
 	PublicURIs bool
 	// Sets an expiration date for presigned url (only used is PublicURIs is set to false in s3 config)
 	Duration int
+	CDN      string
 }
 
 const (
@@ -63,6 +64,7 @@ func parseConfigToStruct(v *viper.Viper) *Config {
 		Bucket:     v.GetString("s3.bucket"),
 		PublicURIs: v.GetBool("s3.publicURIs"),
 		Duration:   v.GetInt("s3.duration"),
+		CDN:        v.GetString("s3.cdn"),
 	}
 
 	watchFolder := expandHomeFolder(v.GetString("watchFolder"))
