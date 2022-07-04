@@ -4,6 +4,9 @@ build:
 buildC:
 	docker build -o bin -f builder.Dockerfile .
 
+releaseC:
+	docker run --rm -e GITHUB_TOKEN -v `pwd`:/app -w /app goreleaser/goreleaser release
+
 test:
 	go test ./... -timeout=30s -race
 

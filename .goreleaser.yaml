@@ -1,0 +1,19 @@
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+    binary: foxyshot
+
+snapshot:
+  name_template: SNAPSHOT-{{.Commit}}
+
+brews:
+  -
+    tap:
+      owner: elnoro
+      name: homebrew-tap
+    folder: Formula
+    homepage: "https://github.com/elnoro/foxyshot"
+    description: "A lightweight tool to upload MacOS screenshots to an S3-compatible provider"
+
