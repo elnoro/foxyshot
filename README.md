@@ -5,6 +5,13 @@
 A lightweight tool to upload MacOS screenshots to an S3-compatible provider. 
 
 ## Install 
+Install with brew:
+```
+$ brew tap elnoro/tap
+$ brew install foxyshot
+```
+
+Install from source:
 
 ```
 $ git clone https://github.com/elnoro/foxyshot.git
