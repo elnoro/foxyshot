@@ -16,4 +16,6 @@ brews:
     folder: Formula
     homepage: "https://github.com/elnoro/foxyshot"
     description: "A lightweight tool to upload MacOS screenshots to an S3-compatible provider"
+    service: |
+      run: foxyshot run
 
