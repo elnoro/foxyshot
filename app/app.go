@@ -26,10 +26,7 @@ type App interface {
 
 // New creates dependencis and instantiates the app
 func New(c *config.Config) (App, error) {
-	if c.S3 == nil {
-		return nil, fmt.Errorf("Only S3 config is supported for now, must initialized")
-	}
-	uploader := storage.NewS3Uploader(c.S3)
+	uploader := storage.NewS3Uploader(&c.S3)
 	pipeline := ip.NewPipeline(c)
 	clipImpl := clipboard.NewClipboard()
 	notifier := notification.NewNotifier()

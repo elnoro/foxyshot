@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"github.com/spf13/viper"
 	"log"
 	"os"
@@ -10,12 +11,14 @@ import (
 // Config Main config for the application
 type Config struct {
 	// Folder where screenshots are stored
-	WatchFor string
-	S3       *S3Config
-	// Compression level for JPEGs
-	JpegQuality int
-	// Remove original screenshot files to save space
-	RemoveOriginals bool
+	WatchFor    string `mapstructure:"watchFolder"`
+	S3          S3Config
+	Screenshots struct {
+		// Compression level for JPEGs
+		JpegQuality int
+		// Remove original screenshot files to save space
+		RemoveOriginals bool
+	}
 }
 
 // S3Config contains config for s3
@@ -50,35 +53,24 @@ func setupViper(v *viper.Viper) {
 	v.AddConfigPath(".")
 }
 
-func parseConfigToStruct(v *viper.Viper) *Config {
+func parseConfigToStruct(v *viper.Viper) (*Config, error) {
 	err := v.ReadInConfig()
 	if err != nil {
 		// TODO ask for credentials and generate config automatically
-		log.Fatalf("Cannot find the config file, got error %v", err)
-	}
-	s3config := &S3Config{
-		Key:        v.GetString("s3.key"),
-		Secret:     v.GetString("s3.secret"),
-		Endpoint:   v.GetString("s3.endpoint"),
-		Region:     v.GetString("s3.region"),
-		Bucket:     v.GetString("s3.bucket"),
-		PublicURIs: v.GetBool("s3.publicURIs"),
-		Duration:   v.GetInt("s3.duration"),
-		CDN:        v.GetString("s3.cdn"),
+		return nil, fmt.Errorf("reading config, %w", err)
 	}
 
-	watchFolder := expandHomeFolder(v.GetString("watchFolder"))
-	config := &Config{
-		WatchFor:        watchFolder,
-		S3:              s3config,
-		JpegQuality:     v.GetInt("screenshots.jpegQuality"),
-		RemoveOriginals: v.GetBool("screenshots.removeOriginals"),
+	var config Config
+	err = v.Unmarshal(&config)
+	if err != nil {
+		return nil, fmt.Errorf("parsing config, %w", err)
 	}
+	config.WatchFor = expandHomeFolder(config.WatchFor)
 
 	log.Printf("Loaded config from %s \n", viper.ConfigFileUsed())
 	log.Printf("Watching folder %s. Screenshots will be uploaded to %s \n", config.WatchFor, config.S3.Endpoint)
 
-	return config
+	return &config, nil
 }
 
 func expandHomeFolder(orig string) string {
@@ -95,7 +87,7 @@ func expandHomeFolder(orig string) string {
 }
 
 // Load Looks for config in the filesystem
-func Load() *Config {
+func Load() (*Config, error) {
 	v := viper.New()
 	setupViper(v)
 

@@ -19,8 +19,8 @@ const (
 
 // NewPipeline uses config to construct the pipeline
 func NewPipeline(c *config.Config) ScreenshotPipeline {
-	p := newJpgPipeline(c.JpegQuality)
-	if c.RemoveOriginals {
+	p := newJpgPipeline(c.Screenshots.JpegQuality)
+	if c.Screenshots.RemoveOriginals {
 		return newRemoverPipeline(p)
 	}
 
