@@ -9,7 +9,10 @@ import (
 )
 
 func startApp() error {
-	appConfig := config.Load()
+	appConfig, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("cannot load config, %w", err)
+	}
 	cmdApp, err := app.New(appConfig)
 	if err != nil {
 		return fmt.Errorf("cannot start daemon, %w", err)

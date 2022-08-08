@@ -24,7 +24,7 @@ func TestNewPipeline(t *testing.T) {
 	jpg := NewPipeline(c)
 	assert.IsType(t, &readerOptimizer{}, jpg)
 
-	c.RemoveOriginals = true
+	c.Screenshots.RemoveOriginals = true
 
 	remove := NewPipeline(c)
 	assert.IsType(t, &RemoverPipeline{}, remove)
