@@ -9,6 +9,7 @@ require (
 	github.com/spf13/viper v1.12.0
 	github.com/stretchr/testify v1.8.0
 	github.com/testcontainers/testcontainers-go v0.13.0
+	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 )
 
 require (

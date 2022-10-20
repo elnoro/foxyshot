@@ -3,12 +3,15 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"foxyshot/app"
 	"foxyshot/config"
-	"log"
+	"foxyshot/system/logger"
 )
 
-func startApp() error {
+func startApp(args []string) error {
+	logger.FromArgs(args)
 	appConfig, err := config.Load()
 	if err != nil {
 		return fmt.Errorf("cannot load config, %w", err)
