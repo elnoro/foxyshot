@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"foxyshot/config"
 	"os"
 	"runtime/debug"
+
+	"foxyshot/config"
 )
 
 // RunCmd parses the subcommand and chooses the behaviour
@@ -15,7 +16,7 @@ func RunCmd(args []string) error {
 	}
 	switch subCmd {
 	case "run":
-		return startApp()
+		return startApp(os.Args[2:])
 	case "start":
 		return startDaemon(mainCmd)
 	case "stop":
