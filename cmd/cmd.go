@@ -8,6 +8,8 @@ import (
 	"foxyshot/config"
 )
 
+var version = "development"
+
 // RunCmd parses the subcommand and chooses the behaviour
 func RunCmd(args []string) error {
 	mainCmd, subCmd, err := parseArgs(args)
@@ -52,6 +54,8 @@ func getVersion() error {
 	if !ok {
 		return fmt.Errorf("no version info provided with the binary")
 	}
+
+	fmt.Println("Version:", version)
 
 	for _, kv := range b.Settings {
 		if kv.Key == "vcs.revision" {

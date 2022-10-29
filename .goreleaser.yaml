@@ -4,6 +4,8 @@ builds:
     goos:
       - darwin
     binary: foxyshot
+    ldflags:
+      - -s -w -X foxyshot/cmd.version={{.Version}}
 
 snapshot:
   name_template: SNAPSHOT-{{.Commit}}

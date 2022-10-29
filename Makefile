@@ -7,6 +7,9 @@ buildC:
 releaseC:
 	docker run --rm -e GITHUB_TOKEN -v `pwd`:/app -w /app goreleaser/goreleaser release
 
+test-releaseC:
+	docker run --rm -v `pwd`:/app -w /app goreleaser/goreleaser release --snapshot --rm-dist
+
 test:
 	go test ./... -timeout=30s -race
 
