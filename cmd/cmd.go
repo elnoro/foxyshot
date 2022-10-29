@@ -1,14 +1,14 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
-	"runtime/debug"
 
 	"foxyshot/config"
 )
 
-var version = "development"
+var errUnknownSubCommand = errors.New("unknown subcommand")
 
 // RunCmd parses the subcommand and chooses the behaviour
 func RunCmd(args []string) error {
@@ -20,17 +20,17 @@ func RunCmd(args []string) error {
 	case "run":
 		return startApp(os.Args[2:])
 	case "start":
-		return startDaemon(mainCmd)
+		return newDefault().start(mainCmd, "run")
 	case "stop":
-		return stopDaemon()
+		return newDefault().stop()
 	case "status":
-		return printStatus()
+		return printStatus(newDefault())
 	case "configure":
 		return config.RunConfigure()
 	case "version":
-		return getVersion()
+		return displayVersion()
 	default:
-		return fmt.Errorf("Unknown subcommand")
+		return errUnknownSubCommand
 	}
 }
 
@@ -47,24 +47,4 @@ func parseArgs(args []string) (string, string, error) {
 	}
 
 	return mainCmd, subCmd, nil
-}
-
-func getVersion() error {
-	b, ok := debug.ReadBuildInfo()
-	if !ok {
-		return fmt.Errorf("no version info provided with the binary")
-	}
-
-	fmt.Println("Version:", version)
-
-	for _, kv := range b.Settings {
-		if kv.Key == "vcs.revision" {
-			fmt.Println("Revision:", kv.Value)
-		}
-		if kv.Key == "vcs.time" {
-			fmt.Println("Built:", kv.Value)
-		}
-	}
-
-	return nil
 }

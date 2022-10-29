@@ -11,26 +11,27 @@ import (
 )
 
 func TestDaemonLifecycle(t *testing.T) {
-	stateFile = "./testingdata/lifecycle.state"
+	stateFile := "./testingdata/lifecycle.state"
+	d := newDaemon(stateFile)
 
 	// not running yet
-	p, err := getPID()
+	p, err := d.getPID()
 	assert.Equal(t, 0, p)
 	assert.Error(t, err)
 	assert.False(t, assert.FileExists(new(testing.T), stateFile))
 
-	err = startDaemon("echo")
+	err = d.start("echo", "hello")
 	assert.NoError(t, err)
 	// running
-	p, err = getPID()
+	p, err = d.getPID()
 	assert.NotEqual(t, 0, p)
 	assert.NoError(t, err)
 	assert.FileExists(t, stateFile)
 
-	err = stopDaemon()
+	err = d.stop()
 	assert.NoError(t, err)
 	// no longer running
-	p, err = getPID()
+	p, err = d.getPID()
 	assert.Equal(t, 0, p)
 	assert.Error(t, err)
 	assert.False(t, assert.FileExists(new(testing.T), stateFile))
@@ -45,12 +46,13 @@ func TestCannotStartDaemonTwice(t *testing.T) {
 		_ = os.RemoveAll(path)
 	}(dir)
 
-	stateFile = path.Join(dir, "test.state")
+	stateFile := path.Join(dir, "test.state")
+	d := newDaemon(stateFile)
 
-	err = startDaemon("echo")
+	err = d.start("echo", "hello")
 	assert.NoError(t, err)
 
-	err = startDaemon("echo")
+	err = d.start("echo", "hello")
 	assert.Error(t, err)
 	assert.True(
 		t,
@@ -60,37 +62,50 @@ func TestCannotStartDaemonTwice(t *testing.T) {
 }
 
 func TestStartDaemon_InaccessibleLocation(t *testing.T) {
-	stateFile = "./testingdata/doesnotexists/cannot.state"
-	err := startDaemon("echo")
+	stateFile := "./testingdata/doesnotexists/cannot.state"
+	d := newDaemon(stateFile)
+	err := d.start("echo", "hello")
 	assert.Error(t, err)
 
-	p, err := getPID()
+	p, err := d.getPID()
 	assert.Equal(t, 0, p)
 	assert.Error(t, err)
 }
 
-func TestGetPid_MalformedStatus(t *testing.T) {
-	stateFile = "./testingdata/malformed.state"
+func TestStartDaemon_InvalidCommand(t *testing.T) {
+	d := newDaemon("./testingdata/invalidcommand")
 
-	p, err := getPID()
+	err := d.start("")
+	assert.ErrorContains(t, err, "exec: no command")
+}
+
+func TestGetPid_MalformedStatus(t *testing.T) {
+	stateFile := "./testingdata/malformed.state"
+	d := newDaemon(stateFile)
+
+	p, err := d.getPID()
 	assert.Equal(t, 0, p)
 	assert.Error(t, err)
 }
 
 func TestStopDaemon_DoesNotRemoveMalformedState(t *testing.T) {
-	stateFile = "./testingdata/malformed.state"
+	stateFile := "./testingdata/malformed.state"
+	d := newDaemon(stateFile)
 
-	err := stopDaemon()
+	err := d.stop()
 	assert.EqualError(t, err, "Cannot find the state of the app. Got unexpected pid value 0, reason expected integer")
 	assert.FileExists(t, stateFile)
 }
 
-func TestPrintStatus_DoesNotFail(t *testing.T) {
-	stateFile = "./testingdata/malformed.state"
-	err := printStatus()
+func TestPrintStatus_DoesNotPanic(t *testing.T) {
+	stateFile := "./testingdata/malformed.state"
+	err := printStatus(newDaemon(stateFile))
 	assert.EqualError(t, err, "Printing status error, unexpected pid value 0, reason expected integer")
 	stateFile = "./testingdata/valid.state"
-	err = printStatus()
+	err = printStatus(newDaemon(stateFile))
 	assert.NoError(t, err)
+}
 
+func Test_NewDefault(t *testing.T) {
+	assert.NotNil(t, newDefault())
 }

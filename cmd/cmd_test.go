@@ -27,3 +27,9 @@ func TestParseArgs(t *testing.T) {
 		})
 	}
 }
+
+func TestRunCmd(t *testing.T) {
+	err := RunCmd([]string{"main", "unknown-command"})
+
+	assert.ErrorIs(t, err, errUnknownSubCommand)
+}
