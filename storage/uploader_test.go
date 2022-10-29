@@ -2,16 +2,19 @@ package storage_test
 
 import (
 	"context"
-	"foxyshot/config"
-	"foxyshot/storage"
-	"github.com/stretchr/testify/assert"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"testing"
+
+	"foxyshot/config"
+	"foxyshot/storage"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 const (
@@ -42,32 +45,52 @@ func Test_UploadHappyPath(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.Remove(f.Name())
 
-	uploader := newS3Uploader(endpoint)
-	url, err := uploader.Upload(ctx, f.Name())
-	assert.NoError(t, err)
+	tests := []struct {
+		name       string
+		publicURIs bool
+	}{
+		{
+			"public uris",
+			true,
+		},
+		{
+			"presigned urls",
+			false,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			uploader := newS3Uploader(endpoint, test.publicURIs)
 
-	assert.Contains(t, url, endpoint+"/expected-bucket/")
+			url, err := uploader.Upload(ctx, f.Name())
+			fmt.Println(url)
+			assert.NoError(t, err)
 
-	resp, err := http.Get(url)
-	assert.NoError(t, err)
-	defer resp.Body.Close()
+			assert.Contains(t, url, fmt.Sprintf("%s/%s/", endpoint, testBucket))
 
-	assert.Equal(t, resp.StatusCode, 200)
+			resp, err := http.Get(url)
+			assert.NoError(t, err)
+			defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
-	assert.NoError(t, err)
-	assert.Equal(t, string(body), uploadContent)
+			assert.Equal(t, resp.StatusCode, 200)
+
+			body, err := io.ReadAll(resp.Body)
+			assert.NoError(t, err)
+			assert.Equal(t, string(body), uploadContent)
+		})
+	}
 }
 
-func newS3Uploader(endpoint string) storage.Uploader {
+func newS3Uploader(endpoint string, publicURIs bool) storage.Uploader {
 	s3Config := &config.S3Config{
-		Key:        testUser,
-		Secret:     testPass,
+		Key:      testUser,
+		Secret:   testPass,
+		Region:   "eu-west-1",
+		Bucket:   testBucket,
+		Duration: 1,
+
 		Endpoint:   endpoint,
-		Region:     "eu-west-1",
-		Bucket:     testBucket,
-		PublicURIs: false,
-		Duration:   1,
+		PublicURIs: publicURIs,
 	}
 	uploader := storage.NewS3Uploader(s3Config)
 	return uploader
@@ -75,13 +98,13 @@ func newS3Uploader(endpoint string) storage.Uploader {
 
 func startMinio(ctx context.Context) (testcontainers.Container, error) {
 	req := testcontainers.ContainerRequest{
-		Image:        "quay.io/minio/minio:latest",
+		Image:        "bitnami/minio",
 		ExposedPorts: []string{"9000/tcp"},
 		WaitingFor:   wait.ForLog("Documentation"), // TODO use http strategy
-		Entrypoint:   []string{"/bin/bash", "-c", "mkdir -p /data/" + testBucket + "; minio server /data --console-address \":9001\""},
 		Env: map[string]string{
-			"MINIO_ROOT_USER":     testUser,
-			"MINIO_ROOT_PASSWORD": testPass,
+			"MINIO_ROOT_USER":       testUser,
+			"MINIO_ROOT_PASSWORD":   testPass,
+			"MINIO_DEFAULT_BUCKETS": testBucket + ":public",
 		},
 	}
 
