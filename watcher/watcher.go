@@ -1,44 +1,46 @@
-package app
+package watcher
 
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"foxyshot/config"
 	"foxyshot/storage"
 	"foxyshot/system/clipboard"
 	"foxyshot/system/notification"
+
 	"github.com/fsnotify/fsnotify"
-	"log"
-	"os"
-	"os/signal"
-	"path/filepath"
-	"strings"
-	"syscall"
 
 	ip "foxyshot/imageprocessing"
 )
 
-// App is an interface for the main app that waits for new images to appear and watches for os signals
-type App interface {
-	Watch(context.Context, string) error
-	WaitForExit(context.CancelFunc)
-}
-
-// New creates dependencis and instantiates the app
-func New(c *config.Config) (App, error) {
+// New creates dependencies and instantiates the watcher
+func New(c *config.Config) (*Watcher, error) {
 	uploader := storage.NewS3Uploader(&c.S3)
 	pipeline := ip.NewPipeline(c)
-	clipImpl := clipboard.NewClipboard()
+	clipImpl := clipboard.New()
 	notifier := notification.NewNotifier()
 
-	return &foxyshotApp{uploader: uploader, pipeline: pipeline, notifier: notifier, clipboard: clipImpl}, nil
+	return &Watcher{uploader: uploader, pipeline: pipeline, notifier: notifier, clipboardCopier: clipImpl}, nil
 }
 
-type foxyshotApp struct {
-	uploader  storage.Uploader
-	pipeline  ip.ScreenshotPipeline
-	clipboard clipboard.Clipboard
-	notifier  notification.Notifier
+type notifier interface {
+	Show(title, notification string) error
+}
+
+type clipboardCopier interface {
+	Copy(val string) error
+}
+
+type Watcher struct {
+	uploader        storage.Uploader
+	pipeline        ip.ScreenshotPipeline
+	clipboardCopier clipboardCopier
+	notifier        notifier
 }
 
 type fileEvent struct {
@@ -49,16 +51,16 @@ func (fe fileEvent) Path() string {
 	return fe.path
 }
 
-func (fa *foxyshotApp) onNewScreenshot(ctx context.Context, ei fileEvent) {
+func (w *Watcher) onNewScreenshot(ctx context.Context, ei fileEvent) {
 	log.Println("Got event:", ei)
 
-	processed, err := fa.pipeline.Run(ei.Path())
+	processed, err := w.pipeline.Run(ei.Path())
 	if err != nil {
 		log.Printf("Skipping %s, reason: %v\n", ei.Path(), err)
 
 		return
 	}
-	url, err := fa.uploader.Upload(ctx, processed)
+	url, err := w.uploader.Upload(ctx, processed)
 	if err != nil {
 		log.Printf("Skipping %s, reason: %v\n", ei.Path(), err)
 
@@ -71,18 +73,18 @@ func (fa *foxyshotApp) onNewScreenshot(ctx context.Context, ei fileEvent) {
 	}
 
 	log.Printf("Url: %s \n", url)
-	err = fa.clipboard.Copy(url)
+	err = w.clipboardCopier.Copy(url)
 	if err != nil {
 		log.Printf("Could not copy the url to clipboard, got %v", err)
 	}
 
-	err = fa.notifier.Show("FoxyShot", "Screenshot uploaded")
+	err = w.notifier.Show("FoxyShot", "Screenshot uploaded")
 	if err != nil {
 		log.Printf("Failed to display notification, got %v", err)
 	}
 }
 
-func (fa *foxyshotApp) Watch(ctx context.Context, dir string) error {
+func (w *Watcher) Watch(ctx context.Context, dir string) error {
 	if !strings.HasSuffix(dir, "/") {
 		dir += "/"
 	}
@@ -107,7 +109,7 @@ func (fa *foxyshotApp) Watch(ctx context.Context, dir string) error {
 			if !ok {
 				return nil
 			}
-			fa.handleEvent(ctx, ev)
+			w.handleEvent(ctx, ev)
 		case err, ok := <-watcher.Errors:
 			if !ok {
 				return nil
@@ -119,7 +121,7 @@ func (fa *foxyshotApp) Watch(ctx context.Context, dir string) error {
 	}
 }
 
-func (fa *foxyshotApp) handleEvent(ctx context.Context, event fsnotify.Event) {
+func (w *Watcher) handleEvent(ctx context.Context, event fsnotify.Event) {
 	if event.Op&fsnotify.Create != fsnotify.Create {
 		return
 	}
@@ -131,14 +133,5 @@ func (fa *foxyshotApp) handleEvent(ctx context.Context, event fsnotify.Event) {
 	}
 
 	fe := fileEvent{path: event.Name}
-	fa.onNewScreenshot(ctx, fe)
-}
-
-func (fa *foxyshotApp) WaitForExit(cancel context.CancelFunc) {
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
-	<-sigs
-	cancel()
-	log.Println("Exiting...")
+	w.onNewScreenshot(ctx, fe)
 }

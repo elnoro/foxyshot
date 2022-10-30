@@ -4,17 +4,20 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
-	"foxyshot/app"
 	"foxyshot/config"
+	"foxyshot/watcher"
 )
 
-func startApp() error {
+func run() error {
 	appConfig, err := config.Load()
 	if err != nil {
 		return fmt.Errorf("cannot load config, %w", err)
 	}
-	cmdApp, err := app.New(appConfig)
+	cmdApp, err := watcher.New(appConfig)
 	if err != nil {
 		return fmt.Errorf("cannot start daemon, %w", err)
 	}
@@ -27,6 +30,12 @@ func startApp() error {
 		}
 	}()
 
-	cmdApp.WaitForExit(cancel)
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	<-sigs
+	cancel()
+	log.Println("Exiting...")
+
 	return nil
 }

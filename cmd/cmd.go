@@ -16,7 +16,7 @@ func RunCmd(args []string) error {
 	subCmd := parseArgs(args)
 	switch subCmd {
 	case "run":
-		return startApp()
+		return run()
 	case "start":
 		return newDefaultDaemon().start(getExecutable(), "run")
 	case "stop":

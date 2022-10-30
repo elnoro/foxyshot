@@ -1,24 +1,26 @@
-package app
+package watcher
 
 import (
 	"context"
+	"testing"
+
 	"foxyshot/config"
+
 	"github.com/fsnotify/fsnotify"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
-func TestNewApp(t *testing.T) {
+func TestNew(t *testing.T) {
 	withS3 := &config.Config{S3: config.S3Config{}}
 	app, err := New(withS3)
 
 	assert.NoError(t, err)
-	assert.IsType(t, &foxyshotApp{}, app)
+	assert.IsType(t, &Watcher{}, app)
 }
 
-func TestFoxyshotApp_WatchCancelledContext(t *testing.T) {
+func TestWatcher_WatchCancelledContext(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
-	testApp := initTestFoxyshotApp()
+	testApp := initTestWatcher()
 	cancel()
 
 	// must return immediately, since the ctx is cancelled
@@ -27,14 +29,14 @@ func TestFoxyshotApp_WatchCancelledContext(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func initTestFoxyshotApp() *foxyshotApp {
+func initTestWatcher() *Watcher {
 	withS3 := &config.Config{S3: config.S3Config{}}
 	app, _ := New(withS3)
 
-	return app.(*foxyshotApp)
+	return app
 }
 
-func TestFoxyshotApp_handleEvent(t *testing.T) {
+func TestWatcher_handleEvent(t *testing.T) {
 	tests := []struct {
 		name        string
 		ev          fsnotify.Event
@@ -76,11 +78,11 @@ func TestFoxyshotApp_handleEvent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &pipelineMock{}
-			fa := &foxyshotApp{
-				uploader:  &uploaderMock{},
-				pipeline:  p,
-				clipboard: &systemMock{},
-				notifier:  &systemMock{},
+			fa := &Watcher{
+				uploader:        &uploaderMock{},
+				pipeline:        p,
+				clipboardCopier: &systemMock{},
+				notifier:        &systemMock{},
 			}
 			fa.handleEvent(context.Background(), tt.ev)
 
@@ -90,11 +92,11 @@ func TestFoxyshotApp_handleEvent(t *testing.T) {
 	}
 }
 
-func TestFoxyshotApp_onNewScreenshot_HappyPass(t *testing.T) {
+func TestWatcher_onNewScreenshot_HappyPass(t *testing.T) {
 	pipeline := &pipelineMock{}
 	uploader := &uploaderMock{}
 	system := &systemMock{}
-	fa := &foxyshotApp{uploader: uploader, pipeline: pipeline, clipboard: system, notifier: system}
+	fa := &Watcher{uploader: uploader, pipeline: pipeline, clipboardCopier: system, notifier: system}
 
 	fa.onNewScreenshot(context.Background(), fileEvent{path: "expected-path"})
 
