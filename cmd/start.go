@@ -7,11 +7,9 @@ import (
 
 	"foxyshot/app"
 	"foxyshot/config"
-	"foxyshot/system/logger"
 )
 
-func startApp(args []string) error {
-	logger.FromArgs(args)
+func startApp() error {
 	appConfig, err := config.Load()
 	if err != nil {
 		return fmt.Errorf("cannot load config, %w", err)

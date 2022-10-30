@@ -7,6 +7,6 @@ import (
 )
 
 func Test_displayVersion(t *testing.T) {
-	err := displayVersion()
+	err := printVersion()
 	assert.NoError(t, err)
 }

@@ -15,7 +15,7 @@ type daemon struct {
 	stateFile string
 }
 
-func newDefault() *daemon {
+func newDefaultDaemon() *daemon {
 	return newDaemon(defaultStateFile)
 }
 

@@ -7,7 +7,7 @@ import (
 
 var version = "development"
 
-func displayVersion() error {
+func printVersion() error {
 	b, ok := debug.ReadBuildInfo()
 	if !ok {
 		return fmt.Errorf("no version info provided with the binary")

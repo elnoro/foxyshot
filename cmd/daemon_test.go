@@ -107,5 +107,5 @@ func TestPrintStatus_DoesNotPanic(t *testing.T) {
 }
 
 func Test_NewDefault(t *testing.T) {
-	assert.NotNil(t, newDefault())
+	assert.NotNil(t, newDefaultDaemon())
 }

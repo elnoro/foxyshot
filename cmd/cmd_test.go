@@ -7,29 +7,19 @@ import (
 )
 
 func TestParseArgs(t *testing.T) {
-	cases := []struct {
-		args         []string
-		expectedMain string
-		expectedSub  string
-	}{
-		{[]string{"noSub"}, "noSub", "status"},
-		{[]string{"main", "sub"}, "main", "sub"},
-		{[]string{"path with spaces", "sub"}, "path with spaces", "sub"},
-		{[]string{"manyargs", "arg1", "arg2"}, "manyargs", "arg1"},
-	}
+	sub := parseArgs([]string{"arg", "expected-subcommand"})
 
-	for _, c := range cases {
-		t.Run(c.expectedMain, func(t *testing.T) {
-			main, sub, err := parseArgs(c.args)
-			assert.NoError(t, err)
-			assert.NotEmpty(t, main)
-			assert.Equal(t, c.expectedSub, sub)
-		})
-	}
+	assert.Equal(t, "expected-subcommand", sub)
 }
 
 func TestRunCmd(t *testing.T) {
 	err := RunCmd([]string{"main", "unknown-command"})
 
 	assert.ErrorIs(t, err, errUnknownSubCommand)
+}
+
+func TestGetExecutable(t *testing.T) {
+	ex := getExecutable()
+
+	assert.NotEmpty(t, ex)
 }
