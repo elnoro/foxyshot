@@ -2,10 +2,11 @@ package config
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/spf13/viper"
 )
 
 // Config Main config for the application
@@ -67,7 +68,7 @@ func parseConfigToStruct(v *viper.Viper) (*Config, error) {
 	}
 	config.WatchFor = expandHomeFolder(config.WatchFor)
 
-	log.Printf("Loaded config from %s \n", viper.ConfigFileUsed())
+	log.Printf("Loaded config from %s \n", v.ConfigFileUsed())
 	log.Printf("Watching folder %s. Screenshots will be uploaded to %s \n", config.WatchFor, config.S3.Endpoint)
 
 	return &config, nil
