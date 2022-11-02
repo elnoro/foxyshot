@@ -18,8 +18,9 @@ func FromArgs(args []string) {
 	if err != nil {
 		log.Fatal("invalid log file specified", err)
 	}
-
-	setUp(logFile)
+	if logFile != "" {
+		setUp(logFile)
+	}
 }
 
 func parseLog(args []string) (string, error) {
