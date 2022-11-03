@@ -42,3 +42,11 @@ The program starts in the background. To stop it, run:
 ```
 $ foxyshot stop
 ```
+
+## Known issues
+
+If you decide to keep the original screenshot files (setting "removeOriginals" to false), on MacOS you will eventually run into a "too many open files" error.
+
+At this point, either set a higher ulimit or remove the old files manually.
+
+This is because of kqueue, see more technical details [here](https://github.com/fsnotify/fsnotify/issues/11#issuecomment-1279133120).
