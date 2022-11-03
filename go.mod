@@ -3,7 +3,7 @@ module foxyshot
 go 1.19
 
 require (
-	github.com/aws/aws-sdk-go v1.44.81
+	github.com/aws/aws-sdk-go v1.44.129
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/spf13/viper v1.13.0
