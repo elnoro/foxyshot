@@ -44,7 +44,7 @@ const (
 
 func setupViper(v *viper.Viper) {
 	v.SetDefault("screenshots.jpegQuality", defaultJpegQuality)
-	v.SetDefault("screenshots.removeOriginals", false)
+	v.SetDefault("screenshots.removeOriginals", true)
 	v.SetDefault("s3.publicURIs", true)
 	v.SetDefault("s3.bucket", defaultBucket)
 	v.SetDefault("s3.duration", defaultDuration)

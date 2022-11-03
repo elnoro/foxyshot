@@ -13,7 +13,7 @@ func TestDefaultSettings(t *testing.T) {
 	setupViper(v)
 
 	assert.Equal(t, defaultJpegQuality, v.GetInt("screenshots.jpegQuality"))
-	assert.Equal(t, false, v.GetBool("screenshots.removeOriginals"))
+	assert.Equal(t, true, v.GetBool("screenshots.removeOriginals"))
 }
 
 func TestValidConfig(t *testing.T) {
