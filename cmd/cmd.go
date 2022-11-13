@@ -33,12 +33,10 @@ func RunCmd(args []string) error {
 }
 
 func parseArgs(args []string) string {
-	var subCmd string
 	if len(args) < 2 {
-		subCmd = "status"
-	} else {
-		subCmd = args[1]
+		return "status"
 	}
+	subCmd := args[1]
 	logger.FromArgs(args[2:])
 
 	return subCmd
