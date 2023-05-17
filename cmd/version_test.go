@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_displayVersion(t *testing.T) {
+func Test_printVersion(t *testing.T) {
 	err := printVersion()
 	assert.NoError(t, err)
 }
