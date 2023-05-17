@@ -22,16 +22,16 @@ func Test_forceConfig(t *testing.T) {
 
 	t.Run("doesn't overwrite existing config file", func(t *testing.T) {
 		// read the contents of the file before the call
-		existingContents, err := os.ReadFile("./testdata/full.json")
-		assert.NotEqual(t, configTemplate, string(existingContents))
-
+		before, err := os.ReadFile("./testdata/full.json")
+		assert.NotEqual(t, configTemplate, string(before))
 		assert.NoError(t, err)
+
 		err = forceConfig("./testdata/full.json")
+		assert.NoError(t, err)
 
-		// read the contents of the file after the call
-		contents, err := os.ReadFile("./testdata/full.json")
+		after, err := os.ReadFile("./testdata/full.json")
 
 		assert.NoError(t, err)
-		assert.Equal(t, string(existingContents), string(contents))
+		assert.Equal(t, string(before), string(after))
 	})
 }
