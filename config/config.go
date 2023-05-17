@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -32,14 +33,14 @@ type S3Config struct {
 	Bucket     string
 	PublicURIs bool
 	// Sets an expiration date for presigned url (only used is PublicURIs is set to false in s3 config)
-	Duration int
+	Duration time.Duration
 	CDN      string
 }
 
 const (
 	defaultJpegQuality = 30
 	defaultBucket      = "foxy"
-	defaultDuration    = 24
+	defaultDuration    = 24 * time.Hour
 )
 
 func setupViper(v *viper.Viper) {

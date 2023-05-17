@@ -7,7 +7,7 @@
 		"region":   "expected_region",
 		"bucket": "expected_bucket",
 		"publicURIs": false,
-		"duration": 111,
+		"duration": "1h",
 		"cdn": "expected_cdn"
 	},
 	"screenshots": {

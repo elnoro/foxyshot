@@ -2,10 +2,11 @@ package storage
 
 import (
 	"context"
-	"foxyshot/config"
 	"log"
 	"os"
 	"time"
+
+	"foxyshot/config"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"

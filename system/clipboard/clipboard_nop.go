@@ -2,6 +2,6 @@
 
 package clipboard
 
-func (m *Clipboard) Copy(val string) error {
+func (m *Clipboard) Copy(_ string) error {
 	return nil
 }

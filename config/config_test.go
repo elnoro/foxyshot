@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -33,7 +34,7 @@ func TestValidConfig(t *testing.T) {
 	assert.Equal(t, "expected_bucket", c.S3.Bucket)
 	assert.Equal(t, "expected_cdn", c.S3.CDN)
 	assert.Equal(t, false, c.S3.PublicURIs)
-	assert.Equal(t, 111, c.S3.Duration)
+	assert.Equal(t, time.Hour, c.S3.Duration)
 }
 
 func TestExpandHomeFolder(t *testing.T) {
