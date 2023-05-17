@@ -45,7 +45,12 @@ lint/deps:
 	go mod tidy
 	go mod verify
 
-## test/cov: run tests with race flag
+## test/run/short: run tests with short flag
+.PHONY: test/run/short
+test/run/short:
+	go test ./... -timeout=30s -short
+
+## test/run: run tests with race flag
 .PHONY: test/run
 test/run:
 	go test ./... -timeout=30s -race
