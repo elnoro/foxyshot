@@ -1,56 +1,77 @@
 package config
 
 import (
-	"bufio"
-	"errors"
 	"fmt"
 	"os"
-	"strings"
-
-	"github.com/spf13/viper"
+	"os/exec"
 )
 
-var configFields = []struct {
-	key      string
-	question string
-}{
-	{"watchFolder", "Folder to store screenshots"},
-	{"s3.endpoint", "URL of your S3-compatible server"},
-	{"s3.key", "S3 access key"},
-	{"s3.secret", "S3 secret"},
-	{"s3.region", "S3 region"},
-	{"s3.bucket", "S3 bucket"},
-}
-
-// configure asks the user to enter data needed for config
-// TODO add tests, remove duplication
-func configure(v *viper.Viper, p string) error {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("Setup foxyshot")
-	fmt.Println("---------------------")
-
-	for _, cf := range configFields {
-		fmt.Printf("%s: ", cf.question)
-		val, _ := reader.ReadString('\n')
-		val = strings.ReplaceAll(val, "\n", "")
-		v.Set(cf.key, val)
+const configTemplate = `
+{
+    "watchFolder": "Folder to store screenshots (e. g. ~/Screenshots)",
+    "s3": {
+		"key":        "S3 access key",
+		"secret":     "S3 secret",
+		"endpoint":   "URL of your S3-compatible server",
+		"region":     "S3 region",
+		"bucket":     "S3 bucket",
+		"publicURIs": false,
+		"duration":   "if publicURIs is false, this is the duration of the presigned URL. e.g. 24h",
+		"cdn":        "custom domain for sharing screenshots from your S3"
+	},
+	"screenshots": {
+		"jpegQuality": 999,
+		"removeOriginals": true 
 	}
+}`
 
-	fmt.Println("Done! Saving to", p)
-
-	err := v.SafeWriteConfigAs(p)
-	if errors.Is(err, viper.ConfigFileAlreadyExistsError(p)) {
-		fmt.Println("Config file already exists. Do you really want to overwrite the existing config? [y/n]")
-		val, _ := reader.ReadString('\n')
-		if val == "y\n" || val == "yes\n" {
-			fmt.Printf("Done!")
-			return v.WriteConfigAs(p)
-		}
-
-		fmt.Println("No changes were applied!")
+// forceConfig creates config file if it doesn't exist
+func forceConfig(p string) error {
+	if _, err := os.Stat(p); err == nil {
 		return nil
 	}
-	return err
+
+	f, err := os.Create(p)
+	if err != nil {
+		return fmt.Errorf("error creating config file %s: %w", p, err)
+	}
+
+	defer f.Close()
+
+	_, err = f.WriteString(configTemplate)
+	if err != nil {
+		return fmt.Errorf("error writing config file %s: %w", p, err)
+	}
+
+	return nil
+}
+
+// openEditor opens editor for given file and gives it control of the terminal
+func openEditor(p string) error {
+	editor := os.Getenv("EDITOR")
+	if editor == "" {
+		editor = "vim"
+	}
+	cmdStr := fmt.Sprintf("%s %s", editor, p)
+
+	cmd := exec.Command("sh", "-c", cmdStr)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("error opening editor %s: %w", editor, err)
+	}
+
+	return nil
+}
+
+func configure(configPath string) error {
+	if err := forceConfig(configPath); err != nil {
+		return err
+	}
+
+	return openEditor(configPath)
 }
 
 // RunConfigure saves config to home folder
@@ -60,5 +81,5 @@ func RunConfigure() error {
 		return err
 	}
 
-	return configure(viper.GetViper(), configDir+"/config.json")
+	return configure(configDir + "/config.json")
 }
