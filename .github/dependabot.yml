@@ -5,3 +5,5 @@ updates:
     target-branch: "develop"
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "chore(deps)"
