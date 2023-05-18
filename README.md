@@ -1,6 +1,6 @@
 # foxyshot
 
-![build](https://github.com/elnoro/foxyshot/workflows/build/badge.svg) [![go report](https://goreportcard.com/badge/github.com/elnoro/foxyshot)](https://goreportcard.com/report/github.com/elnoro/foxyshot)
+![build](https://github.com/elnoro/foxyshot/workflows/go/badge.svg) [![go report](https://goreportcard.com/badge/github.com/elnoro/foxyshot)](https://goreportcard.com/report/github.com/elnoro/foxyshot)
 
 A lightweight tool to upload MacOS screenshots to an S3-compatible provider. 
 
