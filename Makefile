@@ -33,11 +33,10 @@ release/run: confirm
 release/test:
 	docker run --rm -v `pwd`:/app -w /app goreleaser/goreleaser release --snapshot --clean
 
-
 ## lint/golangci: run golangci (Docker required!)
 .PHONY: lint/golangci
 lint/golangci:
-	docker run --rm -v `pwd`:/app -w /app golangci/golangci-lint:v1.52.2 golangci-lint run -v
+	docker run --rm -v `pwd`:/app -w /app golangci/golangci-lint:v1.55.2-alpine golangci-lint run -v --timeout=5m
 
 ## lint/deps: tidy & verify
 .PHONY: lint/deps

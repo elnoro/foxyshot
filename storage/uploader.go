@@ -2,11 +2,9 @@ package storage
 
 import (
 	"context"
+	"foxyshot/config"
 	"log"
 	"os"
-	"time"
-
-	"foxyshot/config"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -120,7 +118,7 @@ func (u *s3CompatibleUploader) signURL(key string) (string, error) {
 		Key:    aws.String(key),
 	})
 
-	url, err := req.Presign(time.Duration(u.config.Duration) * time.Hour)
+	url, err := req.Presign(u.config.Duration)
 	if err != nil {
 		return "", err
 	}
