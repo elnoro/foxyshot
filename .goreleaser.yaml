@@ -12,7 +12,7 @@ snapshot:
 
 brews:
   -
-    tap:
+    repository:
       owner: elnoro
       name: homebrew-tap
     folder: Formula
