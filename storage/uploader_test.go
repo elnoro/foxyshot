@@ -3,14 +3,14 @@ package storage_test
 import (
 	"context"
 	"fmt"
+	"foxyshot/config"
+	"foxyshot/storage"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"testing"
-
-	"foxyshot/config"
-	"foxyshot/storage"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/testcontainers/testcontainers-go"
@@ -72,7 +72,7 @@ func Test_UploadHappyPath(t *testing.T) {
 			assert.NoError(t, err)
 			defer resp.Body.Close()
 
-			assert.Equal(t, resp.StatusCode, 200)
+			assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 			body, err := io.ReadAll(resp.Body)
 			assert.NoError(t, err)
@@ -87,7 +87,7 @@ func newS3Uploader(endpoint string, publicURIs bool) storage.Uploader {
 		Secret:   testPass,
 		Region:   "eu-west-1",
 		Bucket:   testBucket,
-		Duration: 1,
+		Duration: 60 * time.Second,
 
 		Endpoint:   endpoint,
 		PublicURIs: publicURIs,
@@ -100,7 +100,7 @@ func startMinio(ctx context.Context) (testcontainers.Container, error) {
 	req := testcontainers.ContainerRequest{
 		Image:        "bitnami/minio",
 		ExposedPorts: []string{"9000/tcp"},
-		WaitingFor:   wait.ForLog("Documentation"), // TODO use http strategy
+		WaitingFor:   wait.ForHTTP("/" + testBucket).WithMethod("HEAD"),
 		Env: map[string]string{
 			"MINIO_ROOT_USER":       testUser,
 			"MINIO_ROOT_PASSWORD":   testPass,
